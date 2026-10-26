@@ -1,7 +1,7 @@
 {
-  "name": "security-checker",
+  "name": "sitevitals",
   "version": "1.0.0",
-  "description": "5-Minute Security Checker v1: passive website hygiene audit (headers, TLS, DNS) with scored HTML reports",
+  "description": "SiteVitals v1: passive website hygiene audit (headers, TLS, DNS) with scored HTML reports",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
@@ -15,6 +15,6 @@
     "typescript": "^7.0.2"
   },
   "bin": {
-    "sec-check": "./dist/cli.js"
+    "sitevitals": "./dist/cli.js"
   }
 }

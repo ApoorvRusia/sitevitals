@@ -1,4 +1,4 @@
-# 5-Minute Security Checker — v1 (URL checker)
+# SiteVitals — v1 (URL checker)
 
 Passive website hygiene audit. CLI first; reports are self-contained HTML
 files — emailable, open offline.
@@ -12,6 +12,13 @@ node dist/cli.js <url>   # or: npm run check -- <url>
 ```
 
 Output: console summary + `reports/<host>-<timestamp>.html`.
+
+## How a check runs
+
+1. **Normalize** — the URL is forced to https, the hash stripped, the port defaulted to 443.
+2. **Four check groups run in parallel** — nothing runs first; they all fire at once, each with a 20s timeout: HTTPS redirect; headers (HSTS, CSP, framing, nosniff, referrer-policy, version-leak); TLS (certificate, version floor); DNS (SPF, DMARC).
+3. **Score** — 100 minus the weights of failed checks. A check that errors (timeout, DNS down) never counts as a vulnerability.
+4. **Report** — console summary + self-contained HTML report in `reports/`.
 
 ## Checks (all passive — no scans, no payloads)
 
