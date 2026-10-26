@@ -20,6 +20,21 @@ Output: console summary + `reports/<host>-<timestamp>.html`.
 3. **Score** — 100 minus the weights of failed checks. A check that errors (timeout, DNS down) never counts as a vulnerability.
 4. **Report** — console summary + self-contained HTML report in `reports/`.
 
+```mermaid
+flowchart TD
+    A["CLI: node dist/cli.js <url>"] --> B["Normalize: force https, strip hash, default port 443"]
+    B --> C["HTTPS redirect check"]
+    B --> D["Headers checks: HSTS, CSP, framing, nosniff, referrer-policy, version-leak"]
+    B --> E["TLS checks: certificate, TLS version floor"]
+    B --> F["DNS checks: SPF, DMARC"]
+    C --> G["Collect results - 20s timeout per group"]
+    D --> G
+    E --> G
+    F --> G
+    G --> H["Score: 100 minus failed weights"]
+    H --> I["Console summary + reports/<host>-<timestamp>.html"]
+```
+
 ## Checks (all passive — no scans, no payloads)
 
 | id | name | weight |
