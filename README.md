@@ -28,6 +28,15 @@ node dist/cli.js <url>   # or: npm run check -- <url>
 
 Output: console summary + `reports/<host>-<timestamp>.html`.
 
+## Example outputs
+
+Sample reports generated from the test harness (`test-harness/serve.mjs`) on 2026-10-26 — open the HTML files in a browser to see the rendered report:
+
+- `examples/localhost-hardened-8443.html` — hardened localhost site: **86/100 (Grade B)**. 8 passed, 2 failed (SPF/DMARC, honestly absent on localhost), 1 error (no plain-HTTP listener in the harness).
+- `examples/localhost-bare-8080.html` — bare localhost site: **40/100 (Grade F)**. 2 passed, 8 failed, every finding with a plain-English fix.
+
+To regenerate them: start the harness (`node test-harness/serve.mjs`), then run the checker against `https://localhost:8443` and `https://localhost:8080` with the harness certificate trusted (`NODE_EXTRA_CA_CERTS=test-harness/cert.pem`).
+
 ## How a check runs
 
 1. **Normalize** — the URL is forced to https, the hash stripped, the port defaulted to 443.
@@ -87,8 +96,9 @@ a bare one (no headers, version-leaking Server banner). Results:
   honestly absent on localhost), 1 error (no plain-HTTP listener in harness).
 - Bare server: **40/100 (Grade F)** — 8 failed, every finding with a fix.
 
-Live-internet runs work on the user's own machine; the build VM's egress
-policy blocks Node's `fetch`, so external targets can't be scanned from here.
+Re-run from this VM on 2026-10-26 reproduced both scores exactly.
+
+Live-internet runs are cleanest on your own machine: from this VM, plain fetch works through the proxy but the direct TLS check errors on external targets, so external scores from here carry that artifact.
 
 ## Next (v2)
 
