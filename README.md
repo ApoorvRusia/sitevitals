@@ -28,6 +28,15 @@ node dist/cli.js <url>   # or: npm run check -- <url>
 
 Output: console summary + `reports/<host>-<timestamp>.html`.
 
+## JSON output (v2)
+
+Add `--json` and stdout is pure JSON — same score, grade, counts, and per-check results, plus the HTML report path — so other tools can consume a run without scraping the console summary:
+
+```bash
+node dist/cli.js https://example.com --json | jq '.score, .grade'
+# or: npm run check -- https://example.com --json
+```
+
 ## Example outputs
 
 Sample reports generated from the test harness (`test-harness/serve.mjs`) on 2026-10-26 — open the HTML files in a browser to see the rendered report:
@@ -102,5 +111,7 @@ Live-internet runs are cleanest on your own machine: from this VM, plain fetch w
 
 ## Next (v2)
 
-Repo scanning (secrets, deps, injection) per the spec — ecosystem and
-secrets-rule sources still open questions. JSON output flag still undecided.
+- JSON output flag: DONE in this PR (`--json`, pure JSON on stdout).
+- Repo scanning (secrets, deps, injection) — next PR, npm first (this repo's
+  own ecosystem); secrets-rule sources still an open question.
+- Web UI — later PR, after repo scanning.
