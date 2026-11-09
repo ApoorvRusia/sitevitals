@@ -46,12 +46,13 @@ machine; this VM's egress blocks direct TLS probes on external targets.
 
 - All checks are passive reads (headers, cert, DNS). No scans, no
   payloads, nothing that touches the target site.
-- Work on `dev`, one PR per change, `dev` → `main`. NEVER merge:
-  Clarke reviews/QAs, Apoorv approves merges.
+- Work on `dev`, one PR per change, `dev` → `main`. NEVER merge into
+  `main`: Clarke reviews/QAs and merges into `dev`; Apoorv approves
+  `dev` → `main` releases only.
 - `error` must never be reported as a vulnerability.
 
 ## Where human decisions live
 
-- Apoorv: merges, v2 scope calls (repo-scanning ecosystem, secrets-rule
+- Apoorv: `dev` → `main` releases, v2 scope calls (repo-scanning ecosystem, secrets-rule
   sources, web UI shape), and the v1 gate question.
-- Clarke: PR review/QA, branch mechanics when a push fails.
+- Clarke: PR review/QA, merges into `dev`, branch mechanics when a push fails.
