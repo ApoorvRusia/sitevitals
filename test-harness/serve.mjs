@@ -5,8 +5,15 @@ import http from 'node:http';
 import https from 'node:https';
 import fs from 'node:fs';
 
-const key = fs.readFileSync(new URL('./key.pem', import.meta.url));
-const cert = fs.readFileSync(new URL('./cert.pem', import.meta.url));
+const keyPath = new URL('./key.pem', import.meta.url);
+const certPath = new URL('./cert.pem', import.meta.url);
+if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
+  console.error('Missing test-harness/key.pem and/or cert.pem (gitignored, never committed).');
+  console.error('Generate them first: sh test-harness/generate-cert.sh');
+  process.exit(1);
+}
+const key = fs.readFileSync(keyPath);
+const cert = fs.readFileSync(certPath);
 
 const GOOD_HEADERS = {
   'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
