@@ -1,6 +1,7 @@
 # SiteVitals — agent folder
 
-How any agent (not just Jarvis or Clarke) picks up this project.
+I keep this folder so any agent can pick up this project cold and work
+on it the way I want it worked on. No prior context is assumed.
 
 ## What it is
 
@@ -39,20 +40,25 @@ Acceptance (must hold after every change): hardened = 86/100 (B) —
 (no plain-HTTP listener in the harness); bare = 40/100 (F) — 2 passed,
 8 failed, every finding with a fix. The cert-trust step is required:
 without `NODE_EXTRA_CA_CERTS`, scores match by arithmetic but with the
-wrong composition. Live-internet runs are cleanest on Apoorv's own
-machine; this VM's egress blocks direct TLS probes on external targets.
+wrong composition. I run live-internet checks on my own machine;
+sandboxed environments may block direct TLS probes on external targets.
 
 ## Guardrails and approval gates
 
 - All checks are passive reads (headers, cert, DNS). No scans, no
   payloads, nothing that touches the target site.
-- Work on `dev`, one PR per change, `dev` → `main`. NEVER merge into
-  `main`: Clarke reviews/QAs and merges into `dev`; Apoorv approves
-  `dev` → `main` releases only.
+- Work on `dev`, one PR per change, `dev` → `main`. Never merge into
+  `main` directly: I want every PR reviewed and QA'd before it merges
+  into `dev`, and `dev` → `main` releases happen only with my approval.
 - `error` must never be reported as a vulnerability.
 
-## Where human decisions live
+## Where decisions live
 
-- Apoorv: `dev` → `main` releases, v2 scope calls (repo-scanning ecosystem, secrets-rule
-  sources, web UI shape), and the v1 gate question.
-- Clarke: PR review/QA, merges into `dev`, branch mechanics when a push fails.
+- I decide: `dev` → `main` releases, v2 scope calls (repo-scanning
+  ecosystem, secrets-rule sources, web UI shape), and gate questions
+  such as whether v1 is done.
+- The reviewing agent handles: PR review/QA, merges into `dev`, and
+  branch mechanics when a push fails.
+- Anything not covered here: ask me before acting if it spends money,
+  deletes or overwrites something, changes shared state, or speaks to
+  anyone outside this project. Otherwise, act and report what was done.
