@@ -29,13 +29,23 @@ const GOOD_HEADERS = {
 };
 
 const good = https.createServer({ key, cert }, (req, res) => {
+  if (req.url === '/.well-known/security.txt') {
+    res.writeHead(200, { ...GOOD_HEADERS, 'content-type': 'text/plain' });
+    res.end('Contact: mailto:security@example.com\nExpires: 2027-12-31T23:59:59Z\n');
+    return;
+  }
   res.writeHead(200, GOOD_HEADERS);
   res.end('good');
 });
 
 const bad = https.createServer({ key, cert }, (req, res) => {
   // Bare: no security headers at all, a version-leaking Server header,
-  // and a session cookie with none of the flags.
+  // an unflagged session cookie, and no security.txt (404 on well-known).
+  if (req.url === '/.well-known/security.txt') {
+    res.writeHead(404, { 'content-type': 'text/plain' });
+    res.end('not found');
+    return;
+  }
   res.writeHead(200, { server: 'BadServer/1.2.3', 'x-powered-by': 'Express/4.21', 'set-cookie': 'session=abc123; Path=/' });
   res.end('bad');
 });
