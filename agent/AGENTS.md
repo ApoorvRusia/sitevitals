@@ -13,7 +13,13 @@ deps, injection patterns), (3) web UI.
 
 ## Architecture / data contracts
 
-- `src/checks/<id>.ts` — one file per check, filename = check id.
+- `src/checks/` — four grouped files, NOT one per check id: `dns.ts`
+  (SPF/DMARC), `headers.ts` (HSTS, CSP, framing, nosniff,
+  referrer-policy, version-leak), `https.ts` (redirect), `tls.ts`
+  (certificate, TLS version).
+- `src/repo/` — repo scanning (`repo` subcommand): `scanner.ts` (tree
+  walk + caps), `orchestrator.ts`, `scorer.ts` (repo weights), `report.ts`,
+  `allowlist.ts`, `checks/` (one module per area: secrets, deps, injection).
 - `src/orchestrator.ts` — URL normalization, parallel runs, 20s timeouts.
   Returns `{ target, hostname, scannedAt, results[] }`.
 - `src/scorer.ts` — weights table (tune here, not in check logic).
@@ -42,6 +48,23 @@ Acceptance (must hold after every change): hardened = 86/100 (B) —
 without `NODE_EXTRA_CA_CERTS`, scores match by arithmetic but with the
 wrong composition. I run live-internet checks on my own machine;
 sandboxed environments may block direct TLS probes on external targets.
+
+Repo scanning:
+
+```bash
+node dist/cli.js repo test-harness/fixtures/clean --json | jq '.score, .grade'
+node dist/cli.js repo test-harness/fixtures/dirty --json | jq '.score, .grade'
+node dist/cli.js repo .   # dogfood: must be 0 findings (root allowlist covers the test-harness key + planted fixture secrets)
+```
+
+Acceptance (repo): clean fixture = 100/100 (A), zero findings; dirty
+fixture flags every plant (secrets + vulnerable lodash + every injection
+pattern); dogfood on this repo = 0 findings; reports never print a secret
+value (rule id + file + line + redacted preview only); found secrets are
+never verified live. Working tree only — no git-history scanning. Local
+path only — no cloning. OSV deps check is fixture-verified locally
+(`--osv-fixture`); the live API path is separate code and OSV failure is
+an `error`, never a `fail`.
 
 ## Guardrails and approval gates
 

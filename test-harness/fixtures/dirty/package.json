@@ -1,0 +1,1 @@
+{"dependencies":{"lodash":"4.17.11"},"description":"SiteVitals repo-scan fixture: a repo with planted findings. All secrets below are FAKE — documentation examples and random strings, never real credentials.","name":"dirty-fixture","private":true,"version":"1.0.0"}
