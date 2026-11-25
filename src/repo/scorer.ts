@@ -22,7 +22,17 @@ export const REPO_WEIGHTS: Record<string, number> = {
   // PR3 deps (finding id is the module-level 'deps-vulnerable'; one finding
   // per vulnerable package, however many vulns it has):
   'deps-vulnerable': 12,
-  // PR4 injection: weights land with their slice.
+  // PR4 injection (finding id = pattern id):
+  'eval-call': 12,
+  'function-constructor': 12,
+  'exec-template': 12,
+  'exec-concat': 12,
+  'sql-string-concat': 10,
+  'inner-html': 8,
+  'document-write': 6,
+  'dangerously-set-inner-html': 8,
+  // Unknown ids fall back to 5 in scoreResults, so a new check is never
+  // silently unscored.
   // Unknown ids fall back to 5 in scoreResults, so a new check is never
   // silently unscored.
 };
