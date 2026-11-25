@@ -90,11 +90,20 @@ a plain-English fix snippet in both the console output and the HTML report.
 
 ## Layout
 
-- `src/checks/<id>.ts` — one file per check, filename = check id (see spec memory)
+- `src/checks/` — four grouped files, NOT one file per check id:
+  `dns.ts` (SPF, DMARC), `headers.ts` (HSTS, CSP, framing, nosniff,
+  referrer-policy, version-leak), `https.ts` (HTTP → HTTPS redirect),
+  `tls.ts` (certificate, TLS version)
 - `src/orchestrator.ts` — URL normalization, parallel runs, 20s timeouts
 - `src/scorer.ts` — weights table (tune here, not in check logic)
 - `src/report.ts` — self-contained HTML (inline CSS only)
-- `src/cli.ts` — console summary + report file
+- `src/cli.ts` — console summary + report file; dispatches `repo` to the
+  repo scanner
+- `src/repo/` — repo scanning (`repo` subcommand): `scanner.ts` (tree
+  walk + caps), `orchestrator.ts` (check modules), `scorer.ts` (repo
+  weights), `report.ts` (repo HTML report), `allowlist.ts`
+  (`.sitevitals-allowlist.json`), `checks/` (one module per area:
+  secrets, deps, injection)
 
 ## Acceptance (2026-10-17)
 
@@ -109,9 +118,58 @@ Re-run from this VM on 2026-10-26 reproduced both scores exactly.
 
 Live-internet runs are cleanest on your own machine: from this VM, plain fetch works through the proxy but the direct TLS check errors on external targets, so external scores from here carry that artifact.
 
+## Repo scanning (v2)
+
+`sitevitals repo <path>` audits a local working tree — secrets, vulnerable
+npm dependencies, and JS/TS injection patterns — with its own 100-point
+score that reuses the URL scorer/report/`--json` machinery. The v1 URL
+score is untouched.
+
+```bash
+node dist/cli.js repo ./my-project --json | jq '.score, .grade'
+```
+
+- **Report-only** — it never changes the scanned repo, never auto-fixes,
+  never commits. Findings are read-only output.
+- **Working tree only** — git-history scanning is deferred, not built.
+- **Local path only** — no GitHub URL cloning in this slice.
+- **Secrets are never printed** — findings carry rule id + file + line +
+  redacted preview only. Found secrets are never verified live, no
+  exceptions.
+- **Caps** — max 5,000 files, 1 MiB per file; `node_modules/.git/dist`
+  skipped; OSV failure is an `error`, not a `fail`.
+- **Allowlist** — a `.sitevitals-allowlist.json` in the scanned root
+  suppresses findings for a file (or one rule in a file), with a reason
+  per entry. The repo's own allowlist covers the test-harness TLS key
+  and the planted fixture secrets.
+- **Deps (npm first)** — `package-lock.json` is parsed and the packages
+  are checked against the OSV.dev API (`POST /v1/querybatch`, free, no
+  key). Only package names + versions leave the machine — never code.
+  `--osv-fixture <file>` runs the deps check against a recorded OSV
+  response instead of the network (how it is verified offline; the live
+  API was verified reachable from this VM on 2026-11-24).
+- **Fixtures** — `test-harness/fixtures/clean/` (expected 100/100) and
+  `test-harness/fixtures/dirty/` (planted secrets, a vulnerable lodash,
+  every injection pattern; all fake values, never real credentials).
+
+### Legal 6 / agent guardrails — repo slice
+
+The legal 6 (self-hosted fonts, no session replay, age screen, CAN-SPAM
+footer, subscription renewal terms, DMCA agent) are mostly N/A for a
+local CLI with no fonts, no tracking, no signup, no email and no uploads
+— they bite in the web UI slice, not here. The 5 agent guardrails apply:
+scored outputs (separate 100-point repo score), a corrective-action path
+(every finding carries a fix), a human-in-the-loop gate for destructive
+steps (there are none — report-only), emergency stop / iteration caps
+(file/size caps, OSV timeout), and loud input validation (a missing or
+non-directory path is a hard error) plus secret/PII output checks
+(redacted previews, allowlist).
+
 ## Next (v2)
 
 - JSON output flag: DONE in this PR (`--json`, pure JSON on stdout).
-- Repo scanning (secrets, deps, injection) — next PR, npm first (this repo's
-  own ecosystem); secrets-rule sources still an open question.
+- Repo scanning (secrets, deps, injection) — scaffold in this PR; secrets,
+  deps and injection land one slice each, npm first. Git-history scanning
+  and Python/PyPI are deferred. Secrets rules are vendored Gitleaks
+  defaults (MIT, attributed).
 - Web UI — later PR, after repo scanning.

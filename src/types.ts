@@ -1,5 +1,6 @@
-// Check-module contract. One module per check file in src/checks/,
-// filename = check id. Passive checks only — no scans, no payloads.
+// Check-module contract. Check files in src/checks/ are grouped by area
+// (dns, headers, https, tls) — one file per group, not one per check id.
+// Passive checks only — no scans, no payloads.
 
 export type CheckStatus = 'pass' | 'fail' | 'error';
 export type Severity = 'low' | 'medium' | 'high';

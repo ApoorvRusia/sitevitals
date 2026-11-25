@@ -24,7 +24,7 @@ export interface Score {
   errors: number;
 }
 
-export function scoreResults(results: CheckResult[]): Score {
+export function scoreResults(results: CheckResult[], weights: Record<string, number> = WEIGHTS): Score {
   let score = 100;
   let passed = 0;
   let failed = 0;
@@ -33,7 +33,7 @@ export function scoreResults(results: CheckResult[]): Score {
     if (r.status === 'pass') passed++;
     else if (r.status === 'fail') {
       failed++;
-      score -= WEIGHTS[r.id] ?? 5;
+      score -= weights[r.id] ?? 5;
     } else errors++;
   }
   score = Math.max(0, Math.round(score));
