@@ -4,7 +4,7 @@
   "description": "SiteVitals v1: passive website hygiene audit (headers, TLS, DNS) with scored HTML reports",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && mkdir -p dist/repo/rules && cp src/repo/rules/secrets.json dist/repo/rules/",
     "check": "node dist/cli.js"
   },
   "keywords": [],

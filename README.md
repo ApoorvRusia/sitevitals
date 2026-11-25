@@ -136,6 +136,13 @@ node dist/cli.js repo ./my-project --json | jq '.score, .grade'
 - **Secrets are never printed** — findings carry rule id + file + line +
   redacted preview only. Found secrets are never verified live, no
   exceptions.
+- **Secrets rules** — vendored Gitleaks default rules (MIT, attributed in
+  `src/repo/rules/secrets.json`): a curated subset of the Gitleaks
+  default config (AWS, GitHub, GitLab, Slack, Stripe, private keys,
+  generic API keys/passwords, JWT, npm, SendGrid), hand-written from the
+  known default rule set — no live fetch was available in this sandbox,
+  and no Gitleaks code is used, patterns only. No shell-outs to
+  gitleaks/semgrep; the engine is in-house.
 - **Caps** — max 5,000 files, 1 MiB per file; `node_modules/.git/dist`
   skipped; OSV failure is an `error`, not a `fail`.
 - **Allowlist** — a `.sitevitals-allowlist.json` in the scanned root

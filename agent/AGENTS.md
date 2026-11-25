@@ -61,7 +61,11 @@ Acceptance (repo): clean fixture = 100/100 (A), zero findings; dirty
 fixture flags every plant (secrets + vulnerable lodash + every injection
 pattern); dogfood on this repo = 0 findings; reports never print a secret
 value (rule id + file + line + redacted preview only); found secrets are
-never verified live. Working tree only — no git-history scanning. Local
+never verified live. Secrets rules are the vendored Gitleaks defaults
+(`src/repo/rules/secrets.json`, MIT, attributed) — 13 rules: AWS access
++ secret key, GitHub PAT, GitLab PAT, Slack token + webhook, Stripe
+secret, private key, JWT, npm token, SendGrid key, generic API key,
+generic password. Working tree only — no git-history scanning. Local
 path only — no cloning. OSV deps check is fixture-verified locally
 (`--osv-fixture`); the live API path is separate code and OSV failure is
 an `error`, never a `fail`.

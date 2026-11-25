@@ -43,7 +43,12 @@ export function loadAllowlist(root: string, explicitPath?: string): Allowlist {
   return {
     entries,
     isAllowed(relPath: string, ruleId?: string): boolean {
-      return entries.some((e) => matches(e.path, relPath) && (!e.rule || !ruleId || e.rule === ruleId));
+      // A finding is suppressed when an entry matches the path and either
+      // the entry has no rule (whole file) or its rule matches. Called
+      // without a rule id, only rule-less (whole-file) entries match.
+      return entries.some(
+        (e) => matches(e.path, relPath) && (ruleId === undefined ? !e.rule : !e.rule || e.rule === ruleId),
+      );
     },
   };
 }
