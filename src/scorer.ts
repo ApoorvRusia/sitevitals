@@ -10,6 +10,7 @@ export const WEIGHTS: Record<string, number> = {
   nosniff: 5,
   'referrer-policy': 3,
   'version-leak': 6,
+  'cookie-flags': 6,
   'tls-cert': 12,
   'tls-version': 8,
   spf: 7,
