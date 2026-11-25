@@ -65,7 +65,18 @@ never verified live. Secrets rules are the vendored Gitleaks defaults
 (`src/repo/rules/secrets.json`, MIT, attributed) — 13 rules: AWS access
 + secret key, GitHub PAT, GitLab PAT, Slack token + webhook, Stripe
 secret, private key, JWT, npm token, SendGrid key, generic API key,
-generic password. Working tree only — no git-history scanning. Local
+generic password. Deps (npm first): `package-lock.json` is parsed and
+checked against OSV.dev in two steps (`POST /v1/querybatch` for minimal
+records, then `GET /v1/vulns/<id>` for aliases/severity/fixed versions);
+only names + versions leave the machine. `--osv-fixture` runs the deps
+check against recorded responses — `osv-lodash-vulnerable-response.json`
+(lodash 4.17.11 → GHSA-35jh-r3h4-6jhm (CVE-2021-23337) + GHSA-p6mc-m468-83gw (CVE-2020-8203), fix 4.17.21)
+and `osv-lodash-clean-response.json` (lodash 4.17.21 → clean); both are
+hand-recorded from live OSV responses fetched 2026-11-24
+(the fixture is a `{querybatch, details}` wrapper covering both OSV
+steps; live OSV currently lists 6 vulns for lodash 4.17.11, the fixture
+records the two this slice is verified against).
+Working tree only — no git-history scanning. Local
 path only — no cloning. OSV deps check is fixture-verified locally
 (`--osv-fixture`); the live API path is separate code and OSV failure is
 an `error`, never a `fail`.
