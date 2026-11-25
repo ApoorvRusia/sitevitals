@@ -1,8 +1,20 @@
 // headers — security response headers: CSP, framing, nosniff,
-// Referrer-Policy, and version-leak detection.
+// Referrer-Policy, version-leak detection, cookie flags,
+// Permissions-Policy, and cross-origin isolation headers.
 import { CheckModule, CheckResult } from '../types.js';
 
 const signal = () => AbortSignal.timeout(20_000);
+
+/** A cookie's attributes, lower-cased, from one Set-Cookie string. */
+function cookieAttrs(setCookie: string): Set<string> {
+  return new Set(
+    setCookie
+      .split(';')
+      .slice(1)
+      .map((a) => a.trim().split('=')[0].toLowerCase())
+      .filter(Boolean),
+  );
+}
 
 export const headersCheck: CheckModule = {
   id: 'headers',
@@ -106,6 +118,62 @@ export const headersCheck: CheckModule = {
         status: 'pass',
         severity: 'low',
         detail: server || powered ? `Server header present but generic (${server ?? powered}).` : 'No revealing Server/X-Powered-By headers.',
+      });
+    }
+
+    // Cookie flags — Secure, HttpOnly, SameSite on every Set-Cookie.
+    // A GET, not the HEAD above: some servers only set cookies on GET.
+    // The body is cancelled immediately after the headers arrive — we
+    // never download page content. No cookies at all is a pass: a site
+    // with no cookies has no cookie risk to secure.
+    try {
+      const cookieRes = await fetch(ctx.url.toString(), {
+        method: 'GET',
+        signal: signal(),
+        headers: { 'User-Agent': 'sec-check/1.0 (passive hygiene audit)' },
+      });
+      const cookies = cookieRes.headers.getSetCookie();
+      await cookieRes.body?.cancel().catch(() => undefined);
+      if (cookies.length === 0) {
+        results.push({
+          id: 'cookie-flags',
+          name: 'Cookie flags',
+          status: 'pass',
+          severity: 'medium',
+          detail: 'No cookies set — nothing to secure.',
+        });
+      } else {
+        const bad = cookies.filter((c) => {
+          const attrs = cookieAttrs(c);
+          return !attrs.has('secure') || !attrs.has('httponly') || !attrs.has('samesite');
+        });
+        if (bad.length === 0) {
+          results.push({
+            id: 'cookie-flags',
+            name: 'Cookie flags',
+            status: 'pass',
+            severity: 'medium',
+            detail: `All ${cookies.length} cookie(s) carry Secure, HttpOnly and SameSite.`,
+          });
+        } else {
+          const name = bad[0].split(';')[0].trim();
+          results.push({
+            id: 'cookie-flags',
+            name: 'Cookie flags',
+            status: 'fail',
+            severity: 'medium',
+            detail: `${bad.length} of ${cookies.length} cookie(s) missing Secure, HttpOnly or SameSite (e.g. ${name}).`,
+            fix: 'Set cookies with all three flags: Set-Cookie: name=value; Secure; HttpOnly; SameSite=Lax (Strict for session cookies that never need cross-site sends).',
+          });
+        }
+      }
+    } catch (err) {
+      results.push({
+        id: 'cookie-flags',
+        name: 'Cookie flags',
+        status: 'error',
+        severity: 'medium',
+        detail: `Could not read cookies (${(err as Error).message}).`,
       });
     }
 

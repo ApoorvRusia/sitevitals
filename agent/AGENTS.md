@@ -9,14 +9,16 @@ SiteVitals is a fast, passive website hygiene audit: HTTPS redirect,
 security headers, TLS, DNS (SPF/DMARC), scored out of 100 with a
 plain-English fix per failure. v1 = URL checker (CLI). v2 adds, one PR per
 change: (1) `--json` output flag, (2) repo scanning (secrets, vulnerable
-deps, injection patterns), (3) web UI.
+deps, injection patterns), (3) web UI. Extra URL checks land one per PR
+after repo scanning: cookie flags, Permissions-Policy, isolation headers,
+CAA, security.txt, cert expiry window, HSTS preload.
 
 ## Architecture / data contracts
 
 - `src/checks/` — four grouped files, NOT one per check id: `dns.ts`
   (SPF/DMARC), `headers.ts` (HSTS, CSP, framing, nosniff,
-  referrer-policy, version-leak), `https.ts` (redirect), `tls.ts`
-  (certificate, TLS version).
+  referrer-policy, version-leak, cookie flags), `https.ts` (redirect),
+  `tls.ts` (certificate, TLS version).
 - `src/repo/` — repo scanning (`repo` subcommand): `scanner.ts` (tree
   walk + caps), `orchestrator.ts`, `scorer.ts` (repo weights), `report.ts`,
   `allowlist.ts`, `checks/` (one module per area: secrets, deps, injection).
@@ -42,9 +44,10 @@ NODE_EXTRA_CA_CERTS=test-harness/cert.pem node dist/cli.js https://localhost:844
 ```
 
 Acceptance (must hold after every change): hardened = 86/100 (B) —
-8 passed, 2 failed (SPF/DMARC, honestly absent on localhost), 1 error
-(no plain-HTTP listener in the harness); bare = 40/100 (F) — 2 passed,
-8 failed, every finding with a fix. The cert-trust step is required:
+9 passed, 2 failed (SPF/DMARC, honestly absent on localhost), 1 error
+(no plain-HTTP listener in the harness); bare = 34/100 (F) — 2 passed,
+9 failed (the original 8 plus `cookie-flags`: the bare server sets an
+unflagged session cookie), every finding with a fix. The cert-trust step is required:
 without `NODE_EXTRA_CA_CERTS`, scores match by arithmetic but with the
 wrong composition. I run live-internet checks on my own machine;
 sandboxed environments may block direct TLS probes on external targets.

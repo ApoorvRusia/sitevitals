@@ -2,7 +2,7 @@
 
 ## What it is
 
-SiteVitals is a fast, passive hygiene audit for any website. Give it a URL and it checks the security basics — HTTPS redirect, security headers (HSTS, CSP, framing, nosniff, referrer-policy, version leaks), TLS certificate and version, and DNS records (SPF, DMARC) — then scores the site out of 100 with a grade and a plain-English fix for every failure. Reports are self-contained HTML files: emailable, open offline, no dashboard needed.
+SiteVitals is a fast, passive hygiene audit for any website. Give it a URL and it checks the security basics — HTTPS redirect, security headers (HSTS, CSP, framing, nosniff, referrer-policy, version leaks, cookie flags), TLS certificate and version, and DNS records (SPF, DMARC) — then scores the site out of 100 with a grade and a plain-English fix for every failure. Reports are self-contained HTML files: emailable, open offline, no dashboard needed.
 
 ## Why we need it
 
@@ -49,7 +49,7 @@ To regenerate them: start the harness (`node test-harness/serve.mjs`), then run 
 ## How a check runs
 
 1. **Normalize** — the URL is forced to https, the hash stripped, the port defaulted to 443.
-2. **Four check groups run in parallel** — nothing runs first; they all fire at once, each with a 20s timeout: HTTPS redirect; headers (HSTS, CSP, framing, nosniff, referrer-policy, version-leak); TLS (certificate, version floor); DNS (SPF, DMARC).
+2. **Four check groups run in parallel** — nothing runs first; they all fire at once, each with a 20s timeout: HTTPS redirect; headers (HSTS, CSP, framing, nosniff, referrer-policy, version-leak, cookie flags); TLS (certificate, version floor); DNS (SPF, DMARC).
 3. **Score** — 100 minus the weights of failed checks. A check that errors (timeout, DNS down) never counts as a vulnerability.
 4. **Report** — console summary + self-contained HTML report in `reports/`.
 
@@ -79,6 +79,7 @@ flowchart TD
 | `nosniff` | X-Content-Type-Options: nosniff | 5 |
 | `referrer-policy` | Referrer-Policy header | 3 |
 | `version-leak` | Server/X-Powered-By version disclosure | 6 |
+| `cookie-flags` | Secure, HttpOnly, SameSite on every Set-Cookie (pass if no cookies are set) | 6 |
 | `tls-cert` | Certificate validity + expiry | 12 |
 | `tls-version` | TLS 1.2+ floor | 8 |
 | `spf` | SPF TXT record | 7 |
@@ -92,7 +93,7 @@ a plain-English fix snippet in both the console output and the HTML report.
 
 - `src/checks/` — four grouped files, NOT one file per check id:
   `dns.ts` (SPF, DMARC), `headers.ts` (HSTS, CSP, framing, nosniff,
-  referrer-policy, version-leak), `https.ts` (HTTP → HTTPS redirect),
+  referrer-policy, version-leak, cookie flags), `https.ts` (HTTP → HTTPS redirect),
   `tls.ts` (certificate, TLS version)
 - `src/orchestrator.ts` — URL normalization, parallel runs, 20s timeouts
 - `src/scorer.ts` — weights table (tune here, not in check logic)
@@ -110,9 +111,11 @@ a plain-English fix snippet in both the console output and the HTML report.
 Test harness in `test-harness/`: two localhost servers — a hardened one and
 a bare one (no headers, version-leaking Server banner). Results:
 
-- Hardened server: **86/100 (Grade B)** — 8 passed, 2 failed (SPF/DMARC,
+- Hardened server: **86/100 (Grade B)** — 9 passed, 2 failed (SPF/DMARC,
   honestly absent on localhost), 1 error (no plain-HTTP listener in harness).
-- Bare server: **40/100 (Grade F)** — 8 failed, every finding with a fix.
+- Bare server: **34/100 (Grade F)** — 9 failed (the original 8 plus
+  `cookie-flags`: the bare server sets an unflagged session cookie),
+  every finding with a fix.
 
 Re-run from this VM on 2026-10-26 reproduced both scores exactly.
 

@@ -21,6 +21,7 @@ const GOOD_HEADERS = {
   'x-frame-options': 'DENY',
   'x-content-type-options': 'nosniff',
   'referrer-policy': 'strict-origin-when-cross-origin',
+  'set-cookie': 'sv-session=hardened; Secure; HttpOnly; SameSite=Lax; Path=/',
 };
 
 const good = https.createServer({ key, cert }, (req, res) => {
@@ -29,8 +30,9 @@ const good = https.createServer({ key, cert }, (req, res) => {
 });
 
 const bad = https.createServer({ key, cert }, (req, res) => {
-  // Bare: no security headers at all, plus a version-leaking Server header.
-  res.writeHead(200, { server: 'BadServer/1.2.3', 'x-powered-by': 'Express/4.21' });
+  // Bare: no security headers at all, a version-leaking Server header,
+  // and a session cookie with none of the flags.
+  res.writeHead(200, { server: 'BadServer/1.2.3', 'x-powered-by': 'Express/4.21', 'set-cookie': 'session=abc123; Path=/' });
   res.end('bad');
 });
 
