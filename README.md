@@ -39,7 +39,7 @@ node dist/cli.js https://example.com --json | jq '.score, .grade'
 
 ## Example outputs
 
-Sample reports generated from the test harness (`test-harness/serve.mjs`) on 2026-10-26 — open the HTML files in a browser to see the rendered report:
+Sample reports from v1, generated from the test harness (`test-harness/serve.mjs`) on 2026-10-26 — before the extra URL checks landed, so the pass counts below (8 passed / 2 passed) are v1-era, not current. Open the HTML files in a browser to see the rendered report:
 
 - `examples/localhost-hardened-8443.html` — hardened localhost site: **86/100 (Grade B)**. 8 passed, 2 failed (SPF/DMARC, honestly absent on localhost), 1 error (no plain-HTTP listener in the harness).
 - `examples/localhost-bare-8080.html` — bare localhost site: **40/100 (Grade F)**. 2 passed, 8 failed, every finding with a plain-English fix.
@@ -80,6 +80,7 @@ flowchart TD
 | `referrer-policy` | Referrer-Policy header | 3 |
 | `version-leak` | Server/X-Powered-By version disclosure | 6 |
 | `cookie-flags` | Secure, HttpOnly, SameSite on every Set-Cookie (pass if no cookies are set) | 6 |
+| `permissions-policy` | Permissions-Policy header present | 3 |
 | `tls-cert` | Certificate validity + expiry | 12 |
 | `tls-version` | TLS 1.2+ floor | 8 |
 | `spf` | SPF TXT record | 7 |
@@ -111,11 +112,10 @@ a plain-English fix snippet in both the console output and the HTML report.
 Test harness in `test-harness/`: two localhost servers — a hardened one and
 a bare one (no headers, version-leaking Server banner). Results:
 
-- Hardened server: **86/100 (Grade B)** — 9 passed, 2 failed (SPF/DMARC,
+- Hardened server: **86/100 (Grade B)** — 10 passed, 2 failed (SPF/DMARC,
   honestly absent on localhost), 1 error (no plain-HTTP listener in harness).
-- Bare server: **34/100 (Grade F)** — 9 failed (the original 8 plus
-  `cookie-flags`: the bare server sets an unflagged session cookie),
-  every finding with a fix.
+- Bare server: **31/100 (Grade F)** — 10 failed (the previous 9 plus
+  `permissions-policy`), every finding with a fix.
 
 Re-run from this VM on 2026-10-26 reproduced both scores exactly.
 

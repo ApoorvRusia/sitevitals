@@ -121,6 +121,17 @@ export const headersCheck: CheckModule = {
       });
     }
 
+    // Permissions-Policy
+    const pp = get('permissions-policy');
+    results.push({
+      id: 'permissions-policy',
+      name: 'Permissions-Policy',
+      status: pp ? 'pass' : 'fail',
+      severity: 'low',
+      detail: pp ? `Permissions-Policy present (${pp.slice(0, 80)}${pp.length > 80 ? '…' : ''}).` : 'No Permissions-Policy header.',
+      fix: pp ? undefined : "Send: Permissions-Policy: camera=(), microphone=(), geolocation=() (add any feature the site actually uses).",
+    });
+
     // Cookie flags — Secure, HttpOnly, SameSite on every Set-Cookie.
     // A GET, not the HEAD above: some servers only set cookies on GET.
     // The body is cancelled immediately after the headers arrive — we
