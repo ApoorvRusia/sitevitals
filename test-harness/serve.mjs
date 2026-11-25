@@ -22,6 +22,9 @@ const GOOD_HEADERS = {
   'x-content-type-options': 'nosniff',
   'referrer-policy': 'strict-origin-when-cross-origin',
   'permissions-policy': 'camera=(), microphone=(), geolocation=()',
+  'cross-origin-opener-policy': 'same-origin',
+  'cross-origin-embedder-policy': 'require-corp',
+  'cross-origin-resource-policy': 'same-origin',
   'set-cookie': 'sv-session=hardened; Secure; HttpOnly; SameSite=Lax; Path=/',
 };
 

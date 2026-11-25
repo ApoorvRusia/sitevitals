@@ -81,6 +81,7 @@ flowchart TD
 | `version-leak` | Server/X-Powered-By version disclosure | 6 |
 | `cookie-flags` | Secure, HttpOnly, SameSite on every Set-Cookie (pass if no cookies are set) | 6 |
 | `permissions-policy` | Permissions-Policy header present | 3 |
+| `isolation-headers` | Cross-Origin-Opener-Policy present (COEP/CORP reported as info, not scored) | 5 |
 | `tls-cert` | Certificate validity + expiry | 12 |
 | `tls-version` | TLS 1.2+ floor | 8 |
 | `spf` | SPF TXT record | 7 |
@@ -112,10 +113,10 @@ a plain-English fix snippet in both the console output and the HTML report.
 Test harness in `test-harness/`: two localhost servers — a hardened one and
 a bare one (no headers, version-leaking Server banner). Results:
 
-- Hardened server: **86/100 (Grade B)** — 10 passed, 2 failed (SPF/DMARC,
+- Hardened server: **86/100 (Grade B)** — 11 passed, 2 failed (SPF/DMARC,
   honestly absent on localhost), 1 error (no plain-HTTP listener in harness).
-- Bare server: **31/100 (Grade F)** — 10 failed (the previous 9 plus
-  `permissions-policy`), every finding with a fix.
+- Bare server: **26/100 (Grade F)** — 11 failed (the previous 10 plus
+  `isolation-headers`), every finding with a fix.
 
 Re-run from this VM on 2026-10-26 reproduced both scores exactly.
 
