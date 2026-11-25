@@ -82,6 +82,7 @@ flowchart TD
 | `cookie-flags` | Secure, HttpOnly, SameSite on every Set-Cookie (pass if no cookies are set) | 6 |
 | `permissions-policy` | Permissions-Policy header present | 3 |
 | `isolation-headers` | Cross-Origin-Opener-Policy present (COEP/CORP reported as info, not scored) | 5 |
+| `security-txt` | security.txt served at /.well-known/security.txt (2xx) | 3 |
 | `tls-cert` | Certificate validity + expiry | 12 |
 | `tls-version` | TLS 1.2+ floor | 8 |
 | `spf` | SPF TXT record | 7 |
@@ -115,11 +116,11 @@ a plain-English fix snippet in both the console output and the HTML report.
 Test harness in `test-harness/`: two localhost servers — a hardened one and
 a bare one (no headers, version-leaking Server banner). Results:
 
-- Hardened server: **81/100 (Grade B)** — 11 passed, 3 failed (SPF/DMARC/
+- Hardened server: **81/100 (Grade B)** — 12 passed, 3 failed (SPF/DMARC/
   CAA, honestly absent on localhost — DNS records cannot be published for
   `localhost`), 1 error (no plain-HTTP listener in harness).
-- Bare server: **21/100 (Grade F)** — 12 failed (the previous 11 plus
-  `caa`), every finding with a fix.
+- Bare server: **18/100 (Grade F)** — 13 failed (the previous 12 plus
+  `security-txt`: the bare server 404s it), every finding with a fix.
 
 Re-run from this VM on 2026-10-26 reproduced both scores exactly.
 

@@ -162,6 +162,45 @@ export const headersCheck: CheckModule = {
       });
     }
 
+    // security.txt — /.well-known/security.txt, pass on any 2xx.
+    // A GET with the body cancelled immediately: the file is tiny by
+    // spec, and we only need its status, not its contents.
+    try {
+      const secUrl = new URL('/.well-known/security.txt', ctx.url);
+      const secRes = await fetch(secUrl.toString(), {
+        method: 'GET',
+        signal: signal(),
+        headers: { 'User-Agent': 'sec-check/1.0 (passive hygiene audit)' },
+      });
+      await secRes.body?.cancel().catch(() => undefined);
+      if (secRes.status >= 200 && secRes.status < 300) {
+        results.push({
+          id: 'security-txt',
+          name: 'security.txt',
+          status: 'pass',
+          severity: 'low',
+          detail: `security.txt served at /.well-known/security.txt (${secRes.status}).`,
+        });
+      } else {
+        results.push({
+          id: 'security-txt',
+          name: 'security.txt',
+          status: 'fail',
+          severity: 'low',
+          detail: `No security.txt (/.well-known/security.txt returned ${secRes.status}).`,
+          fix: 'Publish /.well-known/security.txt with at least a Contact line (RFC 9116): Contact: mailto:security@example.com',
+        });
+      }
+    } catch (err) {
+      results.push({
+        id: 'security-txt',
+        name: 'security.txt',
+        status: 'error',
+        severity: 'low',
+        detail: `Could not fetch security.txt (${(err as Error).message}).`,
+      });
+    }
+
     // Cookie flags — Secure, HttpOnly, SameSite on every Set-Cookie.
     // A GET, not the HEAD above: some servers only set cookies on GET.
     // The body is cancelled immediately after the headers arrive — we

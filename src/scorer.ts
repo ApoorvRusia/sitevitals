@@ -13,6 +13,7 @@ export const WEIGHTS: Record<string, number> = {
   'cookie-flags': 6,
   'permissions-policy': 3,
   'isolation-headers': 5,
+  'security-txt': 3,
   'tls-cert': 12,
   'tls-version': 8,
   spf: 7,
