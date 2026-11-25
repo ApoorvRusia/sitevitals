@@ -17,6 +17,7 @@ export const WEIGHTS: Record<string, number> = {
   'tls-version': 8,
   spf: 7,
   dmarc: 7,
+  caa: 5,
 };
 
 export interface Score {
