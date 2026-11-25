@@ -150,11 +150,35 @@ node dist/cli.js repo ./my-project --json | jq '.score, .grade'
   per entry. The repo's own allowlist covers the test-harness TLS key
   and the planted fixture secrets.
 - **Deps (npm first)** — `package-lock.json` is parsed and the packages
-  are checked against the OSV.dev API (`POST /v1/querybatch`, free, no
-  key). Only package names + versions leave the machine — never code.
-  `--osv-fixture <file>` runs the deps check against a recorded OSV
-  response instead of the network (how it is verified offline; the live
-  API was verified reachable from this VM on 2026-11-24).
+  are checked against the OSV.dev API (free, no key), in two steps because
+  that is how OSV works: `POST /v1/querybatch` returns only minimal vuln
+  records, and the full record (aliases, severity, fixed versions) comes
+  from `GET /v1/vulns/<id>`. Only package names + versions leave the
+  machine — never code. `--osv-fixture <file>` runs the deps check against
+  recorded responses instead of the network (how it is verified offline;
+  the live API was verified reachable from this VM on 2026-11-24).
+  The fixture is a wrapper holding both recorded steps
+  (`{querybatch, details}`):
+  `test-harness/fixtures/osv-lodash-vulnerable-response.json` (lodash
+  4.17.11 → GHSA-35jh-r3h4-6jhm / CVE-2021-23337, Command Injection,
+  fixed 4.17.21, and GHSA-p6mc-m468-83gw / CVE-2020-8203, Prototype
+  Pollution, fixed 4.17.20) and `osv-lodash-clean-response.json` (a
+  recorded no-vulns snapshot for lodash 4.17.21, exercising the clean
+  path). Provenance, stated plainly: both are hand-recorded from live
+  OSV responses fetched 2026-11-24 — the GHSA/CVE ids, summaries, and
+  fixed versions are verbatim from OSV; the files are static stand-ins
+  for the network responses. (Live OSV currently lists 6 vulns for
+  lodash 4.17.11; the fixture records the two this slice is verified
+  against. The brief's original pairing was wrong — GHSA-35jh is
+  CVE-2021-23337, not CVE-2019-10744, which belongs to
+  GHSA-jf85-cpcp-j695 — and the fixture was corrected to live OSV data
+  on 2026-11-24.) The clean snapshot is also a point in time: live OSV
+  has since listed newer vulns for lodash 4.17.21
+  (GHSA-xxjr-mmjv-4gpg, GHSA-r5fr-rjxr-66jc), so the clean fixture
+  tests the clean code path, not current live data. Fix guidance
+  takes the highest fixed version across a package's vulns, and only when
+  every listed vuln has a published fix (4.17.21 for lodash 4.17.11 — it
+  fixes both listed vulns). OSV failure is an `error`, never a `fail`.
 - **Fixtures** — `test-harness/fixtures/clean/` (expected 100/100) and
   `test-harness/fixtures/dirty/` (planted secrets, a vulnerable lodash,
   every injection pattern; all fake values, never real credentials).

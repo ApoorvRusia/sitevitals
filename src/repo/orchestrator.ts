@@ -8,10 +8,11 @@ import { RepoCheckModule, RepoFinding, RepoCheckContext, RepoScanOutput } from '
 import { collectFiles, resolveRepoRoot } from './scanner.js';
 import { loadAllowlist } from './allowlist.js';
 import { secretsCheck } from './checks/secrets.js';
+import { depsCheck } from './checks/deps.js';
 
 // Check modules register here, one per slice:
 // PR2 secrets, PR3 deps (npm first), PR4 injection (JS/TS).
-const MODULES: RepoCheckModule[] = [secretsCheck];
+const MODULES: RepoCheckModule[] = [secretsCheck, depsCheck];
 
 export interface RepoScanOptions {
   allowlistPath?: string;

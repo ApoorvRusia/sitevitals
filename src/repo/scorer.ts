@@ -19,7 +19,10 @@ export const REPO_WEIGHTS: Record<string, number> = {
   'sendgrid-key': 12,
   'generic-api-key': 10,
   'generic-password': 8,
-  // PR3 deps, PR4 injection: weights land with their slice.
+  // PR3 deps (finding id is the module-level 'deps-vulnerable'; one finding
+  // per vulnerable package, however many vulns it has):
+  'deps-vulnerable': 12,
+  // PR4 injection: weights land with their slice.
   // Unknown ids fall back to 5 in scoreResults, so a new check is never
   // silently unscored.
 };
