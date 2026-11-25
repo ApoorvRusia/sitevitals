@@ -49,7 +49,7 @@ To regenerate them: start the harness (`node test-harness/serve.mjs`), then run 
 ## How a check runs
 
 1. **Normalize** — the URL is forced to https, the hash stripped, the port defaulted to 443.
-2. **Four check groups run in parallel** — nothing runs first; they all fire at once, each with a 20s timeout: HTTPS redirect; headers (HSTS, CSP, framing, nosniff, referrer-policy, version-leak, cookie flags); TLS (certificate, version floor); DNS (SPF, DMARC).
+2. **Four check groups run in parallel** — nothing runs first; they all fire at once, each with a 20s timeout: HTTPS redirect; headers (HSTS, CSP, framing, nosniff, referrer-policy, version-leak, cookie flags, Permissions-Policy, isolation headers); TLS (certificate, version floor); DNS (SPF, DMARC, CAA).
 3. **Score** — 100 minus the weights of failed checks. A check that errors (timeout, DNS down) never counts as a vulnerability.
 4. **Report** — console summary + self-contained HTML report in `reports/`.
 
@@ -86,6 +86,7 @@ flowchart TD
 | `tls-version` | TLS 1.2+ floor | 8 |
 | `spf` | SPF TXT record | 7 |
 | `dmarc` | DMARC TXT record (enforcing policy) | 7 |
+| `caa` | CAA record (which CAs may issue for the domain) | 5 |
 
 Score = 100 − weights of failed checks. `error` means a check couldn't run
 (timeout, DNS down) and never counts as a vulnerability. Every `fail` carries
@@ -94,8 +95,9 @@ a plain-English fix snippet in both the console output and the HTML report.
 ## Layout
 
 - `src/checks/` — four grouped files, NOT one file per check id:
-  `dns.ts` (SPF, DMARC), `headers.ts` (HSTS, CSP, framing, nosniff,
-  referrer-policy, version-leak, cookie flags), `https.ts` (HTTP → HTTPS redirect),
+  `dns.ts` (SPF, DMARC, CAA), `headers.ts` (HSTS, CSP, framing, nosniff,
+  referrer-policy, version-leak, cookie flags, Permissions-Policy,
+  isolation headers), `https.ts` (HTTP → HTTPS redirect),
   `tls.ts` (certificate, TLS version)
 - `src/orchestrator.ts` — URL normalization, parallel runs, 20s timeouts
 - `src/scorer.ts` — weights table (tune here, not in check logic)
@@ -113,10 +115,11 @@ a plain-English fix snippet in both the console output and the HTML report.
 Test harness in `test-harness/`: two localhost servers — a hardened one and
 a bare one (no headers, version-leaking Server banner). Results:
 
-- Hardened server: **86/100 (Grade B)** — 11 passed, 2 failed (SPF/DMARC,
-  honestly absent on localhost), 1 error (no plain-HTTP listener in harness).
-- Bare server: **26/100 (Grade F)** — 11 failed (the previous 10 plus
-  `isolation-headers`), every finding with a fix.
+- Hardened server: **81/100 (Grade B)** — 11 passed, 3 failed (SPF/DMARC/
+  CAA, honestly absent on localhost — DNS records cannot be published for
+  `localhost`), 1 error (no plain-HTTP listener in harness).
+- Bare server: **21/100 (Grade F)** — 12 failed (the previous 11 plus
+  `caa`), every finding with a fix.
 
 Re-run from this VM on 2026-10-26 reproduced both scores exactly.
 
