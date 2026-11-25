@@ -5,9 +5,23 @@ import { CheckResult } from '../types.js';
 import { Score, scoreResults } from '../scorer.js';
 
 export const REPO_WEIGHTS: Record<string, number> = {
-  // PR1: no finding-producing checks yet — weights land with their slice:
-  // PR2 secrets, PR3 deps, PR4 injection. Unknown ids fall back to 5
-  // in scoreResults, so a new check is never silently unscored.
+  // PR2 secrets (finding id = rule id):
+  'aws-access-key': 15,
+  'aws-secret-key': 15,
+  'github-pat': 15,
+  'gitlab-pat': 15,
+  'slack-token': 12,
+  'slack-webhook': 12,
+  'stripe-secret': 15,
+  'private-key': 15,
+  jwt: 10,
+  'npm-token': 12,
+  'sendgrid-key': 12,
+  'generic-api-key': 10,
+  'generic-password': 8,
+  // PR3 deps, PR4 injection: weights land with their slice.
+  // Unknown ids fall back to 5 in scoreResults, so a new check is never
+  // silently unscored.
 };
 
 export function scoreRepoResults(results: CheckResult[]): Score {
