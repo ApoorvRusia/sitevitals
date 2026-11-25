@@ -44,10 +44,10 @@ NODE_EXTRA_CA_CERTS=test-harness/cert.pem node dist/cli.js https://localhost:844
 ```
 
 Acceptance (must hold after every change): hardened = 86/100 (B) —
-9 passed, 2 failed (SPF/DMARC, honestly absent on localhost), 1 error
-(no plain-HTTP listener in the harness); bare = 34/100 (F) — 2 passed,
-9 failed (the original 8 plus `cookie-flags`: the bare server sets an
-unflagged session cookie), every finding with a fix. The cert-trust step is required:
+10 passed, 2 failed (SPF/DMARC, honestly absent on localhost), 1 error
+(no plain-HTTP listener in the harness); bare = 31/100 (F) — 2 passed,
+10 failed (the previous 9 plus `permissions-policy`), every finding with
+a fix. The cert-trust step is required:
 without `NODE_EXTRA_CA_CERTS`, scores match by arithmetic but with the
 wrong composition. I run live-internet checks on my own machine;
 sandboxed environments may block direct TLS probes on external targets.
