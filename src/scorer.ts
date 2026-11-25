@@ -12,6 +12,7 @@ export const WEIGHTS: Record<string, number> = {
   'version-leak': 6,
   'cookie-flags': 6,
   'permissions-policy': 3,
+  'isolation-headers': 5,
   'tls-cert': 12,
   'tls-version': 8,
   spf: 7,

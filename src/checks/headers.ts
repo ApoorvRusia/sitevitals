@@ -132,6 +132,36 @@ export const headersCheck: CheckModule = {
       fix: pp ? undefined : "Send: Permissions-Policy: camera=(), microphone=(), geolocation=() (add any feature the site actually uses).",
     });
 
+    // Isolation headers — fail only on a missing COOP; COEP/CORP are
+    // reported as info in the detail, not scored. COOP is the one that
+    // protects the top-level document against cross-origin leaks; COEP
+    // and CORP matter per-resource and are a later, stricter bar.
+    const coop = get('cross-origin-opener-policy');
+    const coep = get('cross-origin-embedder-policy');
+    const corp = get('cross-origin-resource-policy');
+    const isolationInfo = [
+      coep ? 'COEP present' : 'COEP absent',
+      corp ? `CORP: ${corp}` : 'CORP absent',
+    ].join('; ');
+    if (coop) {
+      results.push({
+        id: 'isolation-headers',
+        name: 'Cross-origin isolation',
+        status: 'pass',
+        severity: 'medium',
+        detail: `COOP: ${coop}. ${isolationInfo}.`,
+      });
+    } else {
+      results.push({
+        id: 'isolation-headers',
+        name: 'Cross-origin isolation',
+        status: 'fail',
+        severity: 'medium',
+        detail: `No Cross-Origin-Opener-Policy header. ${isolationInfo}.`,
+        fix: 'Send: Cross-Origin-Opener-Policy: same-origin (add Cross-Origin-Embedder-Policy: require-corp once all subresources carry CORP or CORS).',
+      });
+    }
+
     // Cookie flags — Secure, HttpOnly, SameSite on every Set-Cookie.
     // A GET, not the HEAD above: some servers only set cookies on GET.
     // The body is cancelled immediately after the headers arrive — we
