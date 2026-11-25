@@ -76,6 +76,9 @@ hand-recorded from live OSV responses fetched 2026-11-24
 (the fixture is a `{querybatch, details}` wrapper covering both OSV
 steps; live OSV currently lists 6 vulns for lodash 4.17.11, the fixture
 records the two this slice is verified against).
+Injection (JS/TS): hand-written regex patterns — dynamic code execution,
+shell commands built from input, SQL string building, unsanitized HTML;
+no semgrep/opengrep shell-outs, AST/taint is a later upgrade path.
 Working tree only — no git-history scanning. Local
 path only — no cloning. OSV deps check is fixture-verified locally
 (`--osv-fixture`); the live API path is separate code and OSV failure is

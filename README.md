@@ -179,6 +179,10 @@ node dist/cli.js repo ./my-project --json | jq '.score, .grade'
   takes the highest fixed version across a package's vulns, and only when
   every listed vuln has a published fix (4.17.21 for lodash 4.17.11 — it
   fixes both listed vulns). OSV failure is an `error`, never a `fail`.
+- **Injection (JS/TS)** — hand-written regex patterns (dynamic code
+  execution, shell commands built from input, SQL string building,
+  unsanitized HTML assignment). No semgrep/opengrep shell-outs; AST/taint
+  is a later upgrade path.
 - **Fixtures** — `test-harness/fixtures/clean/` (expected 100/100) and
   `test-harness/fixtures/dirty/` (planted secrets, a vulnerable lodash,
   every injection pattern; all fake values, never real credentials).

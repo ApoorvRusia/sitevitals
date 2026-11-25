@@ -1,7 +1,7 @@
 # Loom script — SiteVitals v2 repo scanning (DRAFT skeleton)
 
-> Status: skeleton for PR1. Flesh out the demo lines once slices PR2–PR4
-> land; record only after the full harness regression passes.
+> Status: skeleton — all four slices have landed and the demo commands
+> below are verified. Record only after the final full regression passes.
 
 ## Format
 
