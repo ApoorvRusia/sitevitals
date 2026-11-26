@@ -19,6 +19,14 @@ export const REPO_WEIGHTS: Record<string, number> = {
   'sendgrid-key': 12,
   'generic-api-key': 10,
   'generic-password': 8,
+  // Extra secrets rules (one PR per check): Azure, GCP, Twilio, OpenAI,
+  // database connection strings — all weight 12 (live credentials).
+  'azure-storage-key': 12,
+  'gcp-api-key': 12,
+  'gcp-service-account': 12,
+  'twilio-api-key': 12,
+  'openai-api-key': 12,
+  'db-connection-string': 12,
   // PR3 deps (finding id is the module-level 'deps-vulnerable'; one finding
   // per vulnerable package, however many vulns it has):
   'deps-vulnerable': 12,

@@ -68,10 +68,12 @@ fixture flags every plant (secrets + vulnerable lodash + every injection
 pattern); dogfood on this repo = 0 findings; reports never print a secret
 value (rule id + file + line + redacted preview only); found secrets are
 never verified live. Secrets rules are the vendored Gitleaks defaults
-(`src/repo/rules/secrets.json`, MIT, attributed) — 13 rules: AWS access
+(`src/repo/rules/secrets.json`, MIT, attributed) — 19 rules: AWS access
 + secret key, GitHub PAT, GitLab PAT, Slack token + webhook, Stripe
 secret, private key, JWT, npm token, SendGrid key, generic API key,
-generic password. Deps (npm first): `package-lock.json` is parsed and
+generic password, plus Azure storage key, Google API key, GCP
+service-account key file, Twilio API key, OpenAI API key, database
+connection string. Deps (npm first): `package-lock.json` is parsed and
 checked against OSV.dev in two steps (`POST /v1/querybatch` for minimal
 records, then `GET /v1/vulns/<id>` for aliases/severity/fixed versions);
 only names + versions leave the machine. `--osv-fixture` runs the deps

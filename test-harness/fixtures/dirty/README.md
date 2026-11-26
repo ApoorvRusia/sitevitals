@@ -11,6 +11,11 @@ Planted, by check:
   token, SendGrid key, JWT. `id_rsa` (OpenSSH private key) and
   `rsa-key.pem` (RSA private key). `src/app.js`: generic `apiKey` and
   `dbPassword` assignments.
+- **Secrets, extra rules (check 08)** — `.env`: Azure storage key,
+  Google API key, Twilio API key, OpenAI API key, a postgres connection
+  string with embedded credentials. `gcp-service-account.json`: a GCP
+  service-account key file (type `service_account`, no private key
+  block — so it flags exactly once, as `gcp-service-account`).
 - **Deps (PR3)** — `package-lock.json`: lodash 4.17.11 (vulnerable;
   see `test-harness/fixtures/osv-lodash-vulnerable-response.json`).
 - **Injection (PR4)** — `src/app.js`: `eval`, `new Function`,
