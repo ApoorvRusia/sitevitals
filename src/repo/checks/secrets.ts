@@ -56,6 +56,40 @@ export function redactSecret(value: string): string {
   return `${value.slice(0, 4)}…[redacted]`;
 }
 
+export interface SecretMatch {
+  ruleId: string;
+  name: string;
+  severity: Severity;
+  secret: string;
+}
+
+/**
+ * Run the loaded rules over one line and return the matches, with the
+ * same semantics as the full scan: generic rules skip lines a specific
+ * rule already flagged, and generic matches skip placeholders. Shared
+ * with the Dockerfile check so ENV/ARG values are judged by the exact
+ * same rules (and the same redaction) as any other file.
+ */
+export function scanLineForSecrets(line: string): SecretMatch[] {
+  const rules = loadRules();
+  const matches: SecretMatch[] = [];
+  let lineFlaggedBySpecific = false;
+  for (const { rule, re } of rules) {
+    if (rule.generic && lineFlaggedBySpecific) continue;
+    re.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(line)) !== null) {
+      const secret = m[rule.group ?? 0] ?? m[0];
+      if (!secret) break;
+      if (rule.generic && isPlaceholder(secret)) continue;
+      matches.push({ ruleId: rule.id, name: rule.name, severity: rule.severity, secret });
+      if (!rule.generic) lineFlaggedBySpecific = true;
+      if (m[0].length === 0) break; // empty match: avoid an infinite loop
+    }
+  }
+  return matches;
+}
+
 function isPlaceholder(value: string): boolean {
   if (/^(.)\1+$/.test(value)) return true;
   if (/^(example|placeholder|changeme|your-|test|xxx|dummy)/i.test(value)) return true;

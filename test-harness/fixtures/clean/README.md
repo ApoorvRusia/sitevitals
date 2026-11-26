@@ -9,4 +9,6 @@ that must be skipped) and `Pipfile.lock` (click 8.1.7 — same package as
 requirements.txt, so the dep check must dedupe it to one query).
 And the clean-side Go manifest: `go.mod` requiring uuid v1.6.0
 (clean, in a `require` block).
+And the clean-side Dockerfile: `FROM node:20.11.0` (pinned),
+`USER node` (non-root), `ENV NODE_ENV=production` (no secret).
 Verified with `osv-clean-combined-response.json`.
