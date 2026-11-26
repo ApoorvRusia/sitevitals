@@ -155,6 +155,56 @@ export function parsePipfileLock(content: string): DepPackage[] {
     .sort((a, b) => (a.name < b.name ? -1 : 1));
 }
 
+/**
+ * go.mod — `require` blocks and single-line requires. Each requirement
+ * is `module/path vX.Y.Z` (the `v` prefix is part of the Go version and
+ * is what OSV expects). `// indirect` comments are stripped; `replace`,
+ * `exclude`, `retract` and the `go`/`module` directives are not
+ * requirements and are skipped.
+ */
+export function parseGoMod(content: string): DepPackage[] {
+  const found = new Map<string, string>();
+  let inRequireBlock = false;
+  for (const raw of content.split('\n')) {
+    let line = raw.trim();
+    if (!line) continue;
+    const comment = line.indexOf('//');
+    if (comment >= 0) line = line.slice(0, comment).trim();
+    if (!line) continue;
+    if (line === 'require (') {
+      inRequireBlock = true;
+      continue;
+    }
+    if (inRequireBlock && line === ')') {
+      inRequireBlock = false;
+      continue;
+    }
+    let req: string | undefined;
+    if (inRequireBlock) req = line;
+    else if (line.startsWith('require ')) req = line.slice('require '.length).trim();
+    else continue;
+    if (!req) continue;
+    const parts = req.split(/\s+/);
+    if (parts.length < 2) continue;
+    const [name, version] = parts;
+    if (!/^v\d/.test(version)) continue; // not a versioned requirement
+    if (!found.has(name)) found.set(name, version);
+  }
+  return [...found.entries()]
+    .map(([name, version]) => ({ name, version, ecosystem: 'Go' as const, source: 'go.mod' }))
+    .sort((a, b) => (a.name < b.name ? -1 : 1));
+}
+
+/**
+ * OSV Go `fixed` versions come back without the `v` prefix ("1.9.1"),
+ * but `go get` needs it ("v1.9.1"). Display (and record) the prefixed
+ * form for Go packages; every other ecosystem is shown as OSV gave it.
+ */
+function displayFixedVersion(pkg: DepPackage, fixed: string): string {
+  if (pkg.ecosystem === 'Go' && !fixed.startsWith('v')) return `v${fixed}`;
+  return fixed;
+}
+
 async function queryOsv(packages: DepPackage[]): Promise<OsvQueryResponse> {
   let res: Response;
   try {
@@ -239,6 +289,7 @@ export const depsCheck: RepoCheckModule = {
       { relPath: 'package-lock.json', parse: parseLockfile },
       { relPath: 'requirements.txt', parse: parseRequirementsTxt },
       { relPath: 'Pipfile.lock', parse: parsePipfileLock },
+      { relPath: 'go.mod', parse: parseGoMod },
     ];
     const byEcosystem = new Map<string, Map<string, DepPackage>>();
     let foundAnyManifest = false;
@@ -272,7 +323,7 @@ export const depsCheck: RepoCheckModule = {
           name: 'Dependencies',
           status: 'pass',
           severity: 'low',
-          detail: 'No dependency manifest at the repo root (package-lock.json, requirements.txt, Pipfile.lock) — nothing to check.',
+          detail: 'No dependency manifest at the repo root (package-lock.json, requirements.txt, Pipfile.lock, go.mod) — nothing to check.',
         },
       ];
     }
@@ -338,18 +389,19 @@ export const depsCheck: RepoCheckModule = {
         ? fixedVersions.reduce<string | undefined>((best, f) => (f && (!best || compareSemver(f, best) > 0) ? f : best), undefined)
         : undefined;
       const severity = vulns.some((v) => vulnSeverity(v) === 'high') ? 'high' : 'medium';
+      const shownFixed = fixed ? displayFixedVersion(pkg, fixed) : undefined;
       findings.push({
         id: 'deps-vulnerable',
         name: 'Vulnerable dependency',
         status: 'fail',
         severity,
         detail: `${pkg.name}@${pkg.version} (${pkg.ecosystem}) has ${vulns.length} known ${vulns.length === 1 ? 'vulnerability' : 'vulnerabilities'}: ${withAliases.join(', ')}.`,
-        fix: fixed
-          ? `Upgrade ${pkg.name} to ${fixed} or later (fixes all listed vulnerabilities).`
+        fix: shownFixed
+          ? `Upgrade ${pkg.name} to ${shownFixed} or later (fixes all listed vulnerabilities).`
           : `At least one listed vulnerability for ${pkg.name} has no published fix yet — check the advisories and upgrade when fixes land.`,
         packageName: pkg.name,
         packageVersion: pkg.version,
-        fixedVersion: fixed,
+        fixedVersion: shownFixed,
         vulnIds: ids,
         ecosystem: pkg.ecosystem,
       });
