@@ -237,6 +237,12 @@ node dist/cli.js repo ./my-project --json | jq '.score, .grade'
   execution, shell commands built from input, SQL string building,
   unsanitized HTML assignment). No semgrep/opengrep shell-outs; AST/taint
   is a later upgrade path.
+- **Dockerfile** — `Dockerfile` / `Dockerfile.*` files: runs as root
+  (no `USER`, or `USER root`), secrets in `ENV`/`ARG` layers (judged by
+  the same vendored secrets rules, same redaction), unpinned base image
+  (`:latest` or no tag — a registry `:port` is not a tag, a digest pin
+  counts as pinned). One finding per issue; a secret in a layer is
+  flagged by both this module and the secrets module.
 - **Fixtures** — `test-harness/fixtures/clean/` (expected 100/100) and
   `test-harness/fixtures/dirty/` (planted secrets, a vulnerable lodash,
   every injection pattern; all fake values, never real credentials).

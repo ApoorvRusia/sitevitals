@@ -26,6 +26,12 @@ Planted, by check:
 - **Deps, Go (check 10)** — `go.mod`: gin v1.7.4 (vulnerable: 5 OSV
   records, 3 issues, fix v1.9.1). Verified with
   `osv-dirty-combined-response.json`.
+- **Dockerfile (check 11)** — `Dockerfile`: `FROM node:latest`
+  (unpinned), no `USER` instruction (runs as root), and
+  `ENV STRIPE_KEY=sk_test_…` (a secret baked into a layer — flagged
+  once here as `dockerfile-secret-env` and once by the secrets module
+  as `stripe-secret`, because it is both a leaked secret and a layer
+  problem).
 - **Injection (PR4)** — `src/app.js`: `eval`, `new Function`,
   `exec` with template interpolation, `exec` with string concat, SQL
   query with template interpolation, SQL query with string concat,

@@ -39,6 +39,10 @@ export const REPO_WEIGHTS: Record<string, number> = {
   'inner-html': 8,
   'document-write': 6,
   'dangerously-set-inner-html': 8,
+  // Check 11 Dockerfile:
+  'dockerfile-root-user': 8,
+  'dockerfile-secret-env': 10,
+  'dockerfile-latest-tag': 5,
   // Unknown ids fall back to 5 in scoreResults, so a new check is never
   // silently unscored.
   // Unknown ids fall back to 5 in scoreResults, so a new check is never
