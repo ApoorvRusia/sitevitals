@@ -21,6 +21,41 @@ function licenseOf(entry: { license?: unknown; licenses?: unknown }): string | u
   return undefined;
 }
 
+/**
+ * package-lock.json → name → { version, license }. Shared by the
+ * license audit and the SBOM builder so the lockfile is parsed once,
+ * one way. Same collection rules as the deps check: top-level
+ * `node_modules/<name>` entries only; the root entry ("") is skipped.
+ */
+export function parseLockfileLicenses(content: string): Map<string, { version?: string; license?: string }> {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    throw new Error('package-lock.json is not valid JSON.');
+  }
+  const obj = parsed as { packages?: Record<string, { version?: string; license?: unknown; licenses?: unknown }>; dependencies?: Record<string, { version?: string; license?: unknown; licenses?: unknown }> };
+  const entries = new Map<string, { version?: string; license?: string }>();
+  const collect = (key: string, entry: { version?: string; license?: unknown; licenses?: unknown }) => {
+    const m = key.match(/^node_modules\/(@[^/]+\/[^/]+|[^/]+)$/);
+    if (!m || entries.has(m[1])) return;
+    entries.set(m[1], { version: entry.version, license: licenseOf(entry) });
+  };
+  if (obj.packages && typeof obj.packages === 'object') {
+    for (const key of Object.keys(obj.packages).sort()) {
+      if (key === '') continue; // the project itself, not a dependency
+      collect(key, obj.packages[key]);
+    }
+  }
+  if (obj.dependencies && typeof obj.dependencies === 'object') {
+    for (const name of Object.keys(obj.dependencies).sort()) {
+      const entry = obj.dependencies[name];
+      if (!entries.has(name)) entries.set(name, { version: entry.version, license: licenseOf(entry) });
+    }
+  }
+  return entries;
+}
+
 export const licensesCheck: RepoCheckModule = {
   id: 'licenses',
   name: 'Dependency licenses',
@@ -38,31 +73,7 @@ export const licensesCheck: RepoCheckModule = {
         },
       ];
     }
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(lockfile.content);
-    } catch {
-      throw new Error('package-lock.json is not valid JSON.');
-    }
-    const obj = parsed as { packages?: Record<string, { version?: string; license?: unknown; licenses?: unknown }>; dependencies?: Record<string, { version?: string; license?: unknown; licenses?: unknown }> };
-    const entries = new Map<string, { version?: string; license?: string }>();
-    const collect = (key: string, entry: { version?: string; license?: unknown; licenses?: unknown }) => {
-      const m = key.match(/^node_modules\/(@[^/]+\/[^/]+|[^/]+)$/);
-      if (!m || entries.has(m[1])) return;
-      entries.set(m[1], { version: entry.version, license: licenseOf(entry) });
-    };
-    if (obj.packages && typeof obj.packages === 'object') {
-      for (const key of Object.keys(obj.packages).sort()) {
-        if (key === '') continue; // the project itself, not a dependency
-        collect(key, obj.packages[key]);
-      }
-    }
-    if (obj.dependencies && typeof obj.dependencies === 'object') {
-      for (const name of Object.keys(obj.dependencies).sort()) {
-        const entry = obj.dependencies[name];
-        if (!entries.has(name)) entries.set(name, { version: entry.version, license: licenseOf(entry) });
-      }
-    }
+    const entries = parseLockfileLicenses(lockfile.content);
 
     const findings: RepoFinding[] = [];
     for (const [name, { version, license }] of [...entries.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {

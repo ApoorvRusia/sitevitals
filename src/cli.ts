@@ -2,6 +2,8 @@
 //   `node dist/cli.js <url> [--json]`        v1 URL audit (unchanged)
 //   `node dist/cli.js repo <path> [--json] [--osv-fixture <file>] [--allowlist <file>]`
 //                                            v2 repo scan (report-only)
+//   `node dist/cli.js repo <path> --sbom [--sbom-out <file>]`
+//                                            CycloneDX-ish inventory, no scoring
 // --json prints pure JSON on stdout in both modes (for piping into other
 // tools); the HTML report is still written and its path is in the payload.
 import fs from 'node:fs';
@@ -12,11 +14,13 @@ import { renderReport } from './report.js';
 import { runRepoScan } from './repo/orchestrator.js';
 import { scoreRepoResults } from './repo/scorer.js';
 import { renderRepoReport } from './repo/report.js';
+import { buildSbom } from './repo/sbom.js';
+import { collectFiles, resolveRepoRoot } from './repo/scanner.js';
 
 const VERSION = '1.0.0';
 
 function usage(): string {
-  return 'Usage: node dist/cli.js <url> [--json] | node dist/cli.js repo <path> [--json] [--osv-fixture <file>] [--allowlist <file>]';
+  return 'Usage: node dist/cli.js <url> [--json] | node dist/cli.js repo <path> [--json] [--osv-fixture <file>] [--allowlist <file>] [--sbom [--sbom-out <file>]]';
 }
 
 function flagValue(args: string[], flag: string): string | undefined {
@@ -84,6 +88,8 @@ async function runRepoCli(args: string[], jsonMode: boolean): Promise<void> {
   }
   const osvFixture = flagValue(args, '--osv-fixture');
   const allowlistPath = flagValue(args, '--allowlist');
+  const sbomMode = args.includes('--sbom');
+  const sbomOut = flagValue(args, '--sbom-out');
   if (osvFixture && !fs.existsSync(osvFixture)) {
     console.error(`OSV fixture file does not exist: ${osvFixture}`);
     process.exit(1);
@@ -91,6 +97,29 @@ async function runRepoCli(args: string[], jsonMode: boolean): Promise<void> {
   if (allowlistPath && !fs.existsSync(allowlistPath)) {
     console.error(`Allowlist file does not exist: ${allowlistPath}`);
     process.exit(1);
+  }
+
+  // --sbom mode inventories the repo instead of scoring it: no checks
+  // run, no score is computed, nothing is written to reports/.
+  if (sbomMode) {
+    let root: string;
+    let files: { relPath: string; absPath: string; content: string }[];
+    try {
+      root = resolveRepoRoot(target);
+      files = collectFiles(root).files;
+    } catch (err) {
+      console.error(`SBOM failed: ${(err as Error).message}`);
+      process.exit(1);
+    }
+    const sbom = buildSbom(root, files, VERSION);
+    const text = JSON.stringify(sbom, null, 2);
+    if (sbomOut) {
+      fs.writeFileSync(path.resolve(sbomOut), text + '\n');
+      console.log(`SBOM written to ${path.resolve(sbomOut)} (${sbom.components.length} components)`);
+    } else {
+      console.log(text);
+    }
+    return;
   }
 
   if (!jsonMode) console.log(`Scanning repo ${target} … (report only — nothing is changed, no secrets are verified)\n`);

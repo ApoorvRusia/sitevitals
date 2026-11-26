@@ -156,6 +156,13 @@ score is untouched.
 node dist/cli.js repo ./my-project --json | jq '.score, .grade'
 ```
 
+SBOM (inventory, no scoring — no checks run, no report written):
+
+```bash
+node dist/cli.js repo ./my-project --sbom | jq '.components[] | .purl'
+node dist/cli.js repo ./my-project --sbom --sbom-out sbom.json
+```
+
 - **Report-only** — it never changes the scanned repo, never auto-fixes,
   never commits. Findings are read-only output.
 - **Working tree only** — git-history scanning is deferred, not built.
@@ -256,6 +263,13 @@ node dist/cli.js repo ./my-project --json | jq '.score, .grade'
   skipped), and over-broad top-level permissions (`permissions:
   write-all`, or a top-level `permissions:` block granting any `write`
   scope). Job-level permissions are scoped and are not flagged.
+- **SBOM** — `sitevitals repo <path> --sbom` prints a CycloneDX-ish
+  JSON inventory (bomFormat CycloneDX 1.5; components with name,
+  version, purl bom-ref, and license where the manifest declares one)
+  to stdout, or to a file with `--sbom-out <file>`. It inventories
+  the same manifests the deps/license checks read (npm, PyPI, Go), so
+  the SBOM and the findings always agree. No checks run in `--sbom`
+  mode and no score is computed — it is an inventory, not an audit.
 - **Fixtures** — `test-harness/fixtures/clean/` (expected 100/100) and
   `test-harness/fixtures/dirty/` (planted secrets, a vulnerable lodash,
   every injection pattern; all fake values, never real credentials).
