@@ -11,12 +11,13 @@ import { secretsCheck } from './checks/secrets.js';
 import { depsCheck } from './checks/deps.js';
 import { injectionCheck } from './checks/injection.js';
 import { dockerfileCheck } from './checks/dockerfile.js';
+import { licensesCheck } from './checks/licenses.js';
 
 // Check modules register here, one per slice:
 // PR2 secrets, PR3 deps (npm first), PR4 injection (JS/TS),
 // check 08 extra secrets rules, check 09 Python deps, check 10 Go deps,
-// check 11 Dockerfile.
-const MODULES: RepoCheckModule[] = [secretsCheck, depsCheck, injectionCheck, dockerfileCheck];
+// check 11 Dockerfile, check 12 license audit.
+const MODULES: RepoCheckModule[] = [secretsCheck, depsCheck, injectionCheck, dockerfileCheck, licensesCheck];
 
 export interface RepoScanOptions {
   allowlistPath?: string;

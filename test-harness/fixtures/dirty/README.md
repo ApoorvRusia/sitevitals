@@ -32,6 +32,13 @@ Planted, by check:
   once here as `dockerfile-secret-env` and once by the secrets module
   as `stripe-secret`, because it is both a leaked secret and a layer
   problem).
+- **License audit (check 12)** — `package-lock.json`:
+  `fixture-gpl-lib` 1.0.0 (license GPL-3.0 → `license-copyleft`) and
+  `fixture-nolicense-lib` 2.0.0 (no license field →
+  `license-unknown`). lodash carries its real MIT license, so it is
+  not flagged. The combined OSV fixture gains two empty results for
+  the two fake packages (they are not real packages; OSV returns no
+  vulns for them).
 - **Injection (PR4)** — `src/app.js`: `eval`, `new Function`,
   `exec` with template interpolation, `exec` with string concat, SQL
   query with template interpolation, SQL query with string concat,
