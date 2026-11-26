@@ -5,6 +5,7 @@ import { CheckResult } from './types.js';
 export const WEIGHTS: Record<string, number> = {
   'https-redirect': 10,
   hsts: 12,
+  'hsts-preload': 3,
   csp: 12,
   framing: 8,
   nosniff: 5,

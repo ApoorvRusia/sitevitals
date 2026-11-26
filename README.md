@@ -39,10 +39,10 @@ node dist/cli.js https://example.com --json | jq '.score, .grade'
 
 ## Example outputs
 
-Sample reports from v1, generated from the test harness (`test-harness/serve.mjs`) on 2026-10-26 — before the extra URL checks landed, so the pass counts below (8 passed / 2 passed) are v1-era, not current. Open the HTML files in a browser to see the rendered report:
+Sample reports generated from the test harness (`test-harness/serve.mjs`) on 2026-11-25 — open the HTML files in a browser to see the rendered report:
 
-- `examples/localhost-hardened-8443.html` — hardened localhost site: **86/100 (Grade B)**. 8 passed, 2 failed (SPF/DMARC, honestly absent on localhost), 1 error (no plain-HTTP listener in the harness).
-- `examples/localhost-bare-8080.html` — bare localhost site: **40/100 (Grade F)**. 2 passed, 8 failed, every finding with a plain-English fix.
+- `examples/localhost-hardened-8443.html` — hardened localhost site: **81/100 (Grade B)**. 14 passed, 3 failed (SPF/DMARC/CAA, honestly absent on localhost), 1 error (no plain-HTTP listener in the harness).
+- `examples/localhost-bare-8080.html` — bare localhost site: **15/100 (Grade F)**. 3 passed, 14 failed, every finding with a plain-English fix.
 
 To regenerate them: start the harness (`node test-harness/serve.mjs`), then run the checker against `https://localhost:8443` and `https://localhost:8080` with the harness certificate trusted (`NODE_EXTRA_CA_CERTS=test-harness/cert.pem`).
 
@@ -74,6 +74,7 @@ flowchart TD
 |---|---|---|
 | `https-redirect` | HTTP → HTTPS redirect | 10 |
 | `hsts` | Strict-Transport-Security header | 12 |
+| `hsts-preload` | HSTS preload eligibility (max-age ≥ 31536000 + includeSubDomains + preload; judged from the header, no external API) | 3 |
 | `csp` | Content-Security-Policy | 12 |
 | `framing` | Clickjacking protection (X-Frame-Options / CSP frame-ancestors) | 8 |
 | `nosniff` | X-Content-Type-Options: nosniff | 5 |
@@ -99,8 +100,8 @@ a plain-English fix snippet in both the console output and the HTML report.
 - `src/checks/` — four grouped files, NOT one file per check id:
   `dns.ts` (SPF, DMARC, CAA), `headers.ts` (HSTS, CSP, framing, nosniff,
   referrer-policy, version-leak, cookie flags, Permissions-Policy,
-  isolation headers), `https.ts` (HTTP → HTTPS redirect),
-  `tls.ts` (certificate, TLS version)
+  isolation headers, security.txt), `https.ts` (HTTP → HTTPS redirect,
+  HSTS, HSTS preload), `tls.ts` (certificate, TLS version, expiry window)
 - `src/orchestrator.ts` — URL normalization, parallel runs, 20s timeouts
 - `src/scorer.ts` — weights table (tune here, not in check logic)
 - `src/report.ts` — self-contained HTML (inline CSS only)
@@ -117,15 +118,14 @@ a plain-English fix snippet in both the console output and the HTML report.
 Test harness in `test-harness/`: two localhost servers — a hardened one and
 a bare one (no headers, version-leaking Server banner). Results:
 
-- Hardened server: **81/100 (Grade B)** — 13 passed, 3 failed (SPF/DMARC/
+- Hardened server: **81/100 (Grade B)** — 14 passed, 3 failed (SPF/DMARC/
   CAA, honestly absent on localhost — DNS records cannot be published for
   `localhost`), 1 error (no plain-HTTP listener in harness). Both targets
   pass `cert-expiry-window`: the harness cert is valid until Oct 2027, so
   the fail path is verified separately with a throwaway 5-day cert (see
   below) rather than by the harness.
-- Bare server: **18/100 (Grade F)** — 13 failed (unchanged), every finding
-  with a fix. The bare server passes `cert-expiry-window` for the same
-  reason — it shares the harness cert.
+- Bare server: **15/100 (Grade F)** — 14 failed (the previous 13 plus
+  `hsts-preload`: no HSTS header at all), every finding with a fix.
 
 Fail-path check for `cert-expiry-window` (throwaway, not in the harness):
 generate a 5-day cert, serve it from a scratch server, and scan it with

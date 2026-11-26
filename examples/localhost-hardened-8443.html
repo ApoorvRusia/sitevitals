@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>sec-check · localhost · 86/100</title>
+<title>sec-check · localhost · 81/100</title>
 <style>
   body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #1f2937; }
   .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
@@ -29,16 +29,16 @@
 <body>
   <div class="card">
     <div class="score-row">
-      <div class="dial">86</div>
+      <div class="dial">81</div>
       <div>
         <h1 style="margin:0">Grade B</h1>
-        <div class="meta">localhost · scanned 2026-10-27 02:28:03 UTC<br>
-        8 passed · 2 failed · 1 errors · passive checks only</div>
+        <div class="meta">localhost · scanned 2026-11-25 18:19:46 UTC<br>
+        14 passed · 3 failed · 1 errors · passive checks only</div>
       </div>
     </div>
   </div>
 
-  <h2>Findings (2)</h2>
+  <h2>Findings (3)</h2>
     <div class="finding fail">
       <div class="finding-head">🔴 FAIL <strong>SPF record</strong> <span class="sev medium">medium</span></div>
       <div class="detail">No SPF TXT record on the domain — anyone can spoof email from it.</div>
@@ -49,16 +49,26 @@
       <div class="detail">No DMARC TXT record at _dmarc.localhost</div>
       <div class="fix"><span class="fix-label">Fix →</span> <code>Publish TXT at _dmarc: v=DMARC1; p=quarantine; rua=mailto:dmarc@localhost</code></div>
     </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>CAA record</strong> <span class="sev medium">medium</span></div>
+      <div class="detail">No CAA record on the domain — any CA can issue a certificate for it.</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Publish a CAA record naming your CA, e.g. TXT: 0 issue &quot;letsencrypt.org&quot; (and 0 issuewild for wildcard issuance).</code></div>
+    </div>
   <h2>Could not run (1)</h2>
     <div class="finding error">
       <div class="finding-head">⚪ ERROR <strong>HTTP → HTTPS redirect</strong></div>
       <div class="detail">Could not probe http:// (fetch failed).</div>
       
     </div>
-  <details class="passes"><summary>Passed checks (8)</summary>
+  <details class="passes"><summary>Passed checks (14)</summary>
     <div class="finding pass">
       <div class="finding-head">🟢 PASS <strong>HSTS header</strong></div>
       <div class="detail">HSTS set with max-age=31536000 and includeSubDomains.</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>HSTS preload eligibility</strong></div>
+      <div class="detail">Preload-eligible: max-age=31536000, includeSubDomains, preload directive present.</div>
       
     </div>
     <div class="finding pass">
@@ -87,8 +97,33 @@
       
     </div>
     <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>Permissions-Policy</strong></div>
+      <div class="detail">Permissions-Policy present (camera=(), microphone=(), geolocation=()).</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>Cross-origin isolation</strong></div>
+      <div class="detail">COOP: same-origin. COEP present; CORP: same-origin.</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>security.txt</strong></div>
+      <div class="detail">security.txt served at /.well-known/security.txt (200).</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>Cookie flags</strong></div>
+      <div class="detail">All 1 cookie(s) carry Secure, HttpOnly and SameSite.</div>
+      
+    </div>
+    <div class="finding pass">
       <div class="finding-head">🟢 PASS <strong>Certificate validity</strong></div>
-      <div class="detail">Valid certificate for localhost; expires in 20 days (Nov 16 04:10:28 2026 GMT).</div>
+      <div class="detail">Valid certificate for localhost; expires in 335 days (Oct 26 18:44:33 2027 GMT).</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>Certificate expiry window</strong></div>
+      <div class="detail">Certificate for localhost expires in 335 days (Oct 26 18:44:33 2027 GMT) — outside the 30-day renewal window.</div>
       
     </div>
     <div class="finding pass">
