@@ -190,7 +190,12 @@ node dist/cli.js repo ./my-project --json | jq '.score, .grade'
   and `Pipfile.lock` (`default` + `develop`, pinned `==` only), queried
   as PyPI. Query order is deterministic: npm (sorted by name), then
   PyPI (sorted by name); one finding per vulnerable package
-  (`deps-vulnerable`, 12). `--osv-fixture <file>` runs the deps check against
+  (`deps-vulnerable`, 12). Go next, same flow: `go.mod` `require`
+  blocks and single-line requires (module path + `vX.Y.Z`, the `v`
+  prefix is what OSV expects), queried as Go. Query order is npm,
+  then PyPI, then Go, each sorted by name. OSV returns Go `fixed`
+  versions without the `v` prefix; the fix guidance re-adds it
+  (`go get` needs `v1.9.1`, not `1.9.1`). `--osv-fixture <file>` runs the deps check against
   recorded responses instead of the network (how it is verified offline;
   the live API was verified reachable from this VM on 2026-11-24).
   The fixture is a wrapper holding both recorded steps
@@ -203,12 +208,15 @@ node dist/cli.js repo ./my-project --json | jq '.score, .grade'
   path). The combined fixtures cover npm + PyPI together and are the
   ones the dirty/clean fixture runs use:
   `osv-dirty-combined-response.json` (lodash 4.17.11 + flask 2.0.1 +
-  idna 3.7) and `osv-clean-combined-response.json` (lodash 4.17.21 +
-  click 8.1.7, snapshot no-vulns). Flask 2.0.1 records 4 OSV ids
+  idna 3.7 + gin v1.7.4) and `osv-clean-combined-response.json` (lodash 4.17.21 +
+  click 8.1.7 + uuid v1.6.0, snapshot no-vulns). Flask 2.0.1 records 4 OSV ids
   covering 2 CVEs (CVE-2023-30861 session-cookie Vary header, fix
   2.3.2; CVE-2026-27205, fix 3.1.3 — highest fixed version across the
   package is 3.1.3); idna 3.7 records 2 ids for 1 CVE (CVE-2026-45409,
-  fix 3.15). Provenance, stated plainly: both are hand-recorded from live
+  fix 3.15); gin v1.7.4 records 5 OSV ids covering 3 issues
+  (CVE-2020-28483 request smuggling, fix 1.7.7; CVE-2023-26125 input
+  validation, fix 1.9.0; CVE-2023-29401 filename handling, fix 1.9.1 —
+  highest fixed version across the package is 1.9.1, shown as v1.9.1). Provenance, stated plainly: both are hand-recorded from live
   OSV responses fetched 2026-11-24 — the GHSA/CVE ids, summaries, and
   fixed versions are verbatim from OSV; the files are static stand-ins
   for the network responses. (Live OSV currently lists 6 vulns for

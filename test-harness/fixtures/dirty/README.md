@@ -23,6 +23,9 @@ Planted, by check:
   unpinned `flask>=2.0` line that must be skipped, not flagged.
   `Pipfile.lock`: flask 2.0.1 (vulnerable: 4 OSV records, 2 CVEs, fix
   3.1.3). Verified with `osv-dirty-combined-response.json`.
+- **Deps, Go (check 10)** — `go.mod`: gin v1.7.4 (vulnerable: 5 OSV
+  records, 3 issues, fix v1.9.1). Verified with
+  `osv-dirty-combined-response.json`.
 - **Injection (PR4)** — `src/app.js`: `eval`, `new Function`,
   `exec` with template interpolation, `exec` with string concat, SQL
   query with template interpolation, SQL query with string concat,
