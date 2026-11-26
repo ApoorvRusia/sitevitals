@@ -46,6 +46,10 @@ export const REPO_WEIGHTS: Record<string, number> = {
   // Check 12 license audit (npm package-lock.json only):
   'license-copyleft': 5,
   'license-unknown': 5,
+  // Check 13 CI config (.github/workflows):
+  'ci-unpinned-action': 5,
+  'ci-permissions-write': 5,
+  'ci-permissions-write-all': 8,
   // Unknown ids fall back to 5 in scoreResults, so a new check is never
   // silently unscored.
   // Unknown ids fall back to 5 in scoreResults, so a new check is never

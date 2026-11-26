@@ -39,6 +39,13 @@ Planted, by check:
   not flagged. The combined OSV fixture gains two empty results for
   the two fake packages (they are not real packages; OSV returns no
   vulns for them).
+- **CI config (check 13)** — `.github/workflows/ci.yml`:
+  `permissions: write-all` plus two unpinned actions
+  (`actions/checkout@v4`, `actions/setup-node@v4`).
+  `.github/workflows/release.yml`: top-level `permissions:` block
+  granting `contents: write` + `packages: write`, one pinned action
+  (`actions/checkout@<sha>`, must NOT be flagged) and one unpinned
+  action.
 - **Injection (PR4)** — `src/app.js`: `eval`, `new Function`,
   `exec` with template interpolation, `exec` with string concat, SQL
   query with template interpolation, SQL query with string concat,

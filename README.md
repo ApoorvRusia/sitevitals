@@ -250,6 +250,12 @@ node dist/cli.js repo ./my-project --json | jq '.score, .grade'
   not legal advice; a flagged package needs a human to read the actual
   license. PyPI/Go license data is not in their manifests, so those
   ecosystems are out of scope here.
+- **CI config** — `.github/workflows/*.yml|yaml`, line-based (no YAML
+  dependency): unpinned actions (`uses: owner/repo@<tag>` instead of a
+  full 40-hex commit SHA; local `./` actions and `docker://` images are
+  skipped), and over-broad top-level permissions (`permissions:
+  write-all`, or a top-level `permissions:` block granting any `write`
+  scope). Job-level permissions are scoped and are not flagged.
 - **Fixtures** — `test-harness/fixtures/clean/` (expected 100/100) and
   `test-harness/fixtures/dirty/` (planted secrets, a vulnerable lodash,
   every injection pattern; all fake values, never real credentials).

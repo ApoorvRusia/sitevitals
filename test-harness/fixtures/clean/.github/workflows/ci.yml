@@ -1,0 +1,16 @@
+# Clean fixture workflow: pinned actions + job-level permissions only.
+name: CI
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@0123456789abcdef0123456789abcdef01234567
+        with:
+          node-version: '20'
+      - run: npm test
