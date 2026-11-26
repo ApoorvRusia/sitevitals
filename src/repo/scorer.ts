@@ -43,6 +43,9 @@ export const REPO_WEIGHTS: Record<string, number> = {
   'dockerfile-root-user': 8,
   'dockerfile-secret-env': 10,
   'dockerfile-latest-tag': 5,
+  // Check 12 license audit (npm package-lock.json only):
+  'license-copyleft': 5,
+  'license-unknown': 5,
   // Unknown ids fall back to 5 in scoreResults, so a new check is never
   // silently unscored.
   // Unknown ids fall back to 5 in scoreResults, so a new check is never

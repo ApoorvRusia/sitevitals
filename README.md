@@ -243,6 +243,13 @@ node dist/cli.js repo ./my-project --json | jq '.score, .grade'
   (`:latest` or no tag — a registry `:port` is not a tag, a digest pin
   counts as pinned). One finding per issue; a secret in a layer is
   flagged by both this module and the secrets module.
+- **License audit** — `package-lock.json` (npm only): flags copyleft
+  licenses (GPL/AGPL/LGPL in any form) and unknown/missing licenses
+  (no field, `UNLICENSED`, or `SEE LICENSE IN …`), one finding per
+  package, weight 5 each. It judges the license field as published —
+  not legal advice; a flagged package needs a human to read the actual
+  license. PyPI/Go license data is not in their manifests, so those
+  ecosystems are out of scope here.
 - **Fixtures** — `test-harness/fixtures/clean/` (expected 100/100) and
   `test-harness/fixtures/dirty/` (planted secrets, a vulnerable lodash,
   every injection pattern; all fake values, never real credentials).
