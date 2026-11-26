@@ -18,6 +18,11 @@ Planted, by check:
   block — so it flags exactly once, as `gcp-service-account`).
 - **Deps (PR3)** — `package-lock.json`: lodash 4.17.11 (vulnerable;
   see `test-harness/fixtures/osv-lodash-vulnerable-response.json`).
+- **Deps, Python (check 09)** — `requirements.txt`: idna 3.7
+  (vulnerable: GHSA-65pc-fj4g-8rjx / CVE-2026-45409, fix 3.15) plus an
+  unpinned `flask>=2.0` line that must be skipped, not flagged.
+  `Pipfile.lock`: flask 2.0.1 (vulnerable: 4 OSV records, 2 CVEs, fix
+  3.1.3). Verified with `osv-dirty-combined-response.json`.
 - **Injection (PR4)** — `src/app.js`: `eval`, `new Function`,
   `exec` with template interpolation, `exec` with string concat, SQL
   query with template interpolation, SQL query with string concat,

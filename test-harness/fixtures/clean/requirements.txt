@@ -1,0 +1,3 @@
+# Clean fixture: one pinned, currently-clean Python dep + an unpinned line (skipped).
+click==8.1.7
+requests>=2.0  # unpinned: skipped, not a finding

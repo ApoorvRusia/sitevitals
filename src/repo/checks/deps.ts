@@ -18,6 +18,15 @@ const OSV_QUERYBATCH_URL = 'https://api.osv.dev/v1/querybatch';
 const OSV_VULN_URL = 'https://api.osv.dev/v1/vulns';
 const OSV_TIMEOUT_MS = 30_000;
 
+/** One dependency to query: name + pinned version + ecosystem + source file. */
+export interface DepPackage {
+  name: string;
+  version: string;
+  ecosystem: 'npm' | 'PyPI' | 'Go';
+  /** Manifest rel path the package came from (for finding context). */
+  source: string;
+}
+
 interface OsvQueryVuln {
   id: string;
   modified?: string;
@@ -54,7 +63,7 @@ export function compareSemver(a: string, b: string): number {
   return 0;
 }
 
-function parseLockfile(content: string): { name: string; version: string }[] {
+function parseLockfile(content: string): DepPackage[] {
   let parsed: unknown;
   try {
     parsed = JSON.parse(content);
@@ -84,18 +93,76 @@ function parseLockfile(content: string): { name: string; version: string }[] {
     }
   }
   return [...found.entries()]
-    .map(([name, version]) => ({ name, version }))
+    .map(([name, version]) => ({ name, version, ecosystem: 'npm' as const, source: 'package-lock.json' }))
     .sort((a, b) => (a.name < b.name ? -1 : 1));
 }
 
-async function queryOsv(packages: { name: string; version: string }[]): Promise<OsvQueryResponse> {
+/**
+ * requirements.txt — pinned versions only. A line counts only when it
+ * pins an exact version (`name==1.2.3` or `name===1.2.3`, extras and
+ * environment markers stripped). Unpinned lines (`>=`, `~=`, `>`,
+ * `-r` includes, options) are skipped silently — they are not findings
+ * and not queries; the file cannot tell us which version is installed.
+ */
+export function parseRequirementsTxt(content: string): DepPackage[] {
+  const found = new Map<string, string>();
+  for (const raw of content.split('\n')) {
+    let line = raw.trim();
+    if (!line || line.startsWith('#') || line.startsWith('-')) continue;
+    // Strip an inline comment ("name==1.2.3  # pinned") and markers.
+    const hash = line.indexOf(' #');
+    if (hash >= 0) line = line.slice(0, hash).trim();
+    const semi = line.indexOf(';');
+    if (semi >= 0) line = line.slice(0, semi).trim();
+    const m = /^([A-Za-z0-9_.\-]+)(?:\[[^\]]*\])?\s*(?:===|==)\s*([^\s,]+)/.exec(line);
+    if (!m) continue; // unpinned / option / URL line: skip, not a finding
+    const name = m[1].toLowerCase();
+    const version = m[2].replace(/^['"]|['"]$/g, '');
+    if (version && !found.has(name)) found.set(name, version);
+  }
+  return [...found.entries()]
+    .map(([name, version]) => ({ name, version, ecosystem: 'PyPI' as const, source: 'requirements.txt' }))
+    .sort((a, b) => (a.name < b.name ? -1 : 1));
+}
+
+/**
+ * Pipfile.lock — `default` + `develop` maps; each entry pins via
+ * `"version": "==1.2.3"`. Entries without a pinned version (editable
+ * installs, git refs) are skipped, same rule as requirements.txt.
+ */
+export function parsePipfileLock(content: string): DepPackage[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    throw new Error('Pipfile.lock is not valid JSON.');
+  }
+  const found = new Map<string, string>();
+  const obj = parsed as { default?: Record<string, { version?: string }>; develop?: Record<string, { version?: string }> };
+  for (const section of ['default', 'develop'] as const) {
+    const map = obj[section];
+    if (!map || typeof map !== 'object') continue;
+    for (const name of Object.keys(map).sort()) {
+      const v = map[name]?.version;
+      if (typeof v !== 'string' || !v.startsWith('==')) continue;
+      const version = v.slice(2).trim();
+      const key = name.toLowerCase();
+      if (version && !found.has(key)) found.set(key, version);
+    }
+  }
+  return [...found.entries()]
+    .map(([name, version]) => ({ name, version, ecosystem: 'PyPI' as const, source: 'Pipfile.lock' }))
+    .sort((a, b) => (a.name < b.name ? -1 : 1));
+}
+
+async function queryOsv(packages: DepPackage[]): Promise<OsvQueryResponse> {
   let res: Response;
   try {
     res = await fetch(OSV_QUERYBATCH_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        queries: packages.map((p) => ({ package: { name: p.name, ecosystem: 'npm' }, version: p.version })),
+        queries: packages.map((p) => ({ package: { name: p.name, ecosystem: p.ecosystem }, version: p.version })),
       }),
       signal: AbortSignal.timeout(OSV_TIMEOUT_MS),
     });
@@ -138,7 +205,10 @@ function maxFixedVersion(vuln: OsvVuln): string | undefined {
   for (const aff of vuln.affected ?? []) {
     for (const range of aff.ranges ?? []) {
       for (const ev of range.events) {
-        if (ev.fixed && (!best || compareSemver(ev.fixed, best) > 0)) best = ev.fixed;
+        // Only version-shaped fixes count: some records list commit SHAs
+        // as "fixed" (e.g. a 40-hex SHA starting with digits, which a
+        // naive numeric compare would rank above real versions).
+        if (ev.fixed && /^(v)?\d+\.\d+/.test(ev.fixed) && (!best || compareSemver(ev.fixed, best) > 0)) best = ev.fixed;
       }
     }
   }
@@ -159,32 +229,64 @@ function vulnSeverity(vuln: OsvVuln): 'high' | 'medium' | 'low' {
 export const depsCheck: RepoCheckModule = {
   id: 'deps',
   name: 'Dependencies',
-  cleanDetail: (filesScanned: number) => `No known-vulnerable npm dependencies in ${filesScanned} file(s).`,
+  cleanDetail: (filesScanned: number) => `No known-vulnerable dependencies in ${filesScanned} file(s).`,
   async run(files: ScannedFile[], ctx: RepoCheckContext): Promise<RepoFinding[]> {
-    const lockfile = files.find((f) => f.relPath === 'package-lock.json');
-    if (!lockfile) {
+    // Manifests are read in file order, but the query list is built
+    // per ecosystem (npm, then PyPI, then Go), each sorted by name, so
+    // the OSV query order — and any fixture — is deterministic
+    // regardless of which manifest a package came from.
+    const manifests: { relPath: string; parse: (content: string) => DepPackage[] }[] = [
+      { relPath: 'package-lock.json', parse: parseLockfile },
+      { relPath: 'requirements.txt', parse: parseRequirementsTxt },
+      { relPath: 'Pipfile.lock', parse: parsePipfileLock },
+    ];
+    const byEcosystem = new Map<string, Map<string, DepPackage>>();
+    let foundAnyManifest = false;
+    let skippedAll = true;
+    for (const m of manifests) {
+      const file = files.find((f) => f.relPath === m.relPath);
+      if (!file) continue;
+      foundAnyManifest = true;
+      if (ctx.allowlist.isAllowed(file.relPath, 'deps-vulnerable')) continue;
+      skippedAll = false;
+      for (const p of m.parse(file.content)) {
+        let eco = byEcosystem.get(p.ecosystem);
+        if (!eco) {
+          eco = new Map();
+          byEcosystem.set(p.ecosystem, eco);
+        }
+        if (!eco.has(p.name)) eco.set(p.name, p);
+      }
+    }
+    const packages: DepPackage[] = [];
+    for (const eco of ['npm', 'PyPI', 'Go'] as const) {
+      const map = byEcosystem.get(eco);
+      if (!map) continue;
+      packages.push(...[...map.values()].sort((a, b) => (a.name < b.name ? -1 : 1)));
+    }
+    const ecosystems = new Set(packages.map((p) => p.ecosystem));
+    if (!foundAnyManifest) {
       return [
         {
           id: 'deps-no-lockfile',
           name: 'Dependencies',
           status: 'pass',
           severity: 'low',
-          detail: 'No package-lock.json at the repo root — nothing to check (npm only in this slice).',
+          detail: 'No dependency manifest at the repo root (package-lock.json, requirements.txt, Pipfile.lock) — nothing to check.',
         },
       ];
     }
-    if (ctx.allowlist.isAllowed(lockfile.relPath, 'deps-vulnerable')) {
+    if (skippedAll) {
       return [
         {
           id: 'deps-allowlisted',
           name: 'Dependencies',
           status: 'pass',
           severity: 'low',
-          detail: 'package-lock.json is allowlisted — deps check skipped for it.',
+          detail: 'All dependency manifests are allowlisted — deps check skipped.',
         },
       ];
     }
-    const packages = parseLockfile(lockfile.content);
     if (packages.length === 0) {
       return [
         {
@@ -192,7 +294,7 @@ export const depsCheck: RepoCheckModule = {
           name: 'Dependencies',
           status: 'pass',
           severity: 'low',
-          detail: 'package-lock.json has no dependencies to check.',
+          detail: 'Dependency manifests have no pinned dependencies to check.',
         },
       ];
     }
@@ -206,7 +308,7 @@ export const depsCheck: RepoCheckModule = {
       const resultCount = query.results?.length ?? 0;
       if (resultCount !== packages.length) {
         throw new Error(
-          `OSV fixture has ${resultCount} result(s) for ${packages.length} querie(s) (${packages.map((p) => `${p.name}@${p.version}`).join(', ')}). A querybatch fixture must have one result per queried package, in query order.`,
+          `OSV fixture has ${resultCount} result(s) for ${packages.length} querie(s) (${packages.map((p) => `${p.name}@${p.version} (${p.ecosystem})`).join(', ')}). A querybatch fixture must have one result per queried package, in query order (npm, then PyPI, then Go; each sorted by name).`,
         );
       }
     } else {
@@ -241,7 +343,7 @@ export const depsCheck: RepoCheckModule = {
         name: 'Vulnerable dependency',
         status: 'fail',
         severity,
-        detail: `${pkg.name}@${pkg.version} has ${vulns.length} known ${vulns.length === 1 ? 'vulnerability' : 'vulnerabilities'}: ${withAliases.join(', ')}.`,
+        detail: `${pkg.name}@${pkg.version} (${pkg.ecosystem}) has ${vulns.length} known ${vulns.length === 1 ? 'vulnerability' : 'vulnerabilities'}: ${withAliases.join(', ')}.`,
         fix: fixed
           ? `Upgrade ${pkg.name} to ${fixed} or later (fixes all listed vulnerabilities).`
           : `At least one listed vulnerability for ${pkg.name} has no published fix yet — check the advisories and upgrade when fixes land.`,
@@ -249,6 +351,7 @@ export const depsCheck: RepoCheckModule = {
         packageVersion: pkg.version,
         fixedVersion: fixed,
         vulnIds: ids,
+        ecosystem: pkg.ecosystem,
       });
     });
     return findings;

@@ -1,0 +1,597 @@
+{
+ "details": {
+  "GHSA-35jh-r3h4-6jhm": {
+   "affected": [
+    {
+     "package": {
+      "ecosystem": "npm",
+      "name": "lodash"
+     },
+     "ranges": [
+      {
+       "events": [
+        {
+         "fixed": "4.17.21",
+         "introduced": "0"
+        }
+       ],
+       "type": "SEMVER"
+      }
+     ]
+    }
+   ],
+   "aliases": [
+    "CVE-2021-23337"
+   ],
+   "database_specific": {
+    "cwe_ids": [
+     "CWE-77",
+     "CWE-94"
+    ],
+    "github_reviewed": true,
+    "github_reviewed_at": "2021-03-31T23:59:26Z",
+    "nvd_published_at": "2021-02-15T13:15:00Z",
+    "severity": "High"
+   },
+   "details": "lodash versions prior to 4.17.21 are vulnerable to Command Injection via the template function.",
+   "id": "GHSA-35jh-r3h4-6jhm",
+   "modified": "2026-10-17T02:55:38.085813876Z",
+   "published": "2021-05-06T16:05:51Z",
+   "severity": [
+    {
+     "score": "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:H/I:H/A:H",
+     "type": "CVSS_V3"
+    }
+   ],
+   "summary": "Command Injection in lodash"
+  },
+  "GHSA-65pc-fj4g-8rjx": {
+   "affected": [
+    {
+     "database_specific": {
+      "source": "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2026/05/GHSA-65pc-fj4g-8rjx/GHSA-65pc-fj4g-8rjx.json"
+     },
+     "package": {
+      "ecosystem": "PyPI",
+      "name": "idna",
+      "purl": "pkg:pypi/idna"
+     },
+     "ranges": [
+      {
+       "events": [
+        {
+         "introduced": "0"
+        },
+        {
+         "fixed": "3.15"
+        }
+       ],
+       "type": "ECOSYSTEM"
+      }
+     ]
+    }
+   ],
+   "aliases": [
+    "CVE-2026-45409",
+    "PYSEC-2026-215"
+   ],
+   "database_specific": {
+    "cwe_ids": [
+     "CWE-1333"
+    ],
+    "github_reviewed": true,
+    "github_reviewed_at": "2026-05-19T14:34:32Z",
+    "nvd_published_at": "2026-06-05T23:16:43Z",
+    "severity": "MODERATE"
+   },
+   "details": "This is the same issue as CVE-2024-3651, however the original remediation in 2024 was not a complete fix. Payloads such as `\"\\u0660\" * N` or `\"\\u30fb\" * N + \"\\u6f22\"` utilize the `valid_contexto` function prior to length rejection, and for high values of `N` will take a long time to process.\n\n### Impact\nA specially crafted argument to the `idna.encode()` function could consume significant resources. This may lead to a denial-of-service.\n\n### Patches\nStarting in version 3.14, the function rejects long inputs as soon as practicable prior to any further processing to minimize resource consumption. In version 3.15, this approach was extended to lesser used alternate functions (i.e. per-label conversions and codec support).\n\n### Workarounds\nDomain names cannot exceed 253 characters in length, if this length limit is enforced prior to passing the domain to the `idna.encode()` function it should no longer consume significant resources. This is triggered by arbitrarily large inputs that would not occur in normal usage, but may be passed to the library assuming there is no preliminary input validation by the higher-level application.",
+   "id": "GHSA-65pc-fj4g-8rjx",
+   "modified": "2026-09-10T03:50:45.700124422Z",
+   "published": "2026-05-19T14:34:32Z",
+   "references": [
+    {
+     "type": "WEB",
+     "url": "https://github.com/kjd/idna/security/advisories/GHSA-65pc-fj4g-8rjx"
+    },
+    {
+     "type": "ADVISORY",
+     "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-45409"
+    },
+    {
+     "type": "PACKAGE",
+     "url": "https://github.com/kjd/idna"
+    },
+    {
+     "type": "WEB",
+     "url": "https://github.com/pypa/advisory-database/tree/main/vulns/idna/PYSEC-2026-215.yaml"
+    }
+   ],
+   "schema_version": "1.9.0",
+   "severity": [
+    {
+     "score": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+     "type": "CVSS_V3"
+    },
+    {
+     "score": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N",
+     "type": "CVSS_V4"
+    }
+   ],
+   "summary": "Internationalized Domain Names in Applications (IDNA): Specially crafted inputs to idna.encode() can bypass CVE-2024-3651 fix"
+  },
+  "GHSA-68rp-wp8r-4726": {
+   "affected": [
+    {
+     "database_specific": {
+      "source": "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2026/02/GHSA-68rp-wp8r-4726/GHSA-68rp-wp8r-4726.json"
+     },
+     "package": {
+      "ecosystem": "PyPI",
+      "name": "flask",
+      "purl": "pkg:pypi/flask"
+     },
+     "ranges": [
+      {
+       "events": [
+        {
+         "introduced": "0"
+        },
+        {
+         "fixed": "3.1.3"
+        }
+       ],
+       "type": "ECOSYSTEM"
+      }
+     ]
+    }
+   ],
+   "aliases": [
+    "CVE-2026-27205",
+    "PYSEC-2026-2151"
+   ],
+   "database_specific": {
+    "cwe_ids": [
+     "CWE-524"
+    ],
+    "github_reviewed": true,
+    "github_reviewed_at": "2026-02-19T20:45:41Z",
+    "nvd_published_at": "2026-02-21T06:17:00Z",
+    "severity": "LOW"
+   },
+   "details": "When the `session` object is accessed, Flask should set the `Vary: Cookie` header. This instructs caches not to cache the response, as it may contain information specific to a logged in user. This is handled in most cases, but some forms of access such as the Python `in` operator were overlooked.\n\nThe severity depends on the application's use of the session, and the cache's behavior regarding cookies. The risk depends on all these conditions being met.\n\n1. The application must be hosted behind a caching proxy that does not ignore responses with cookies.\n2. The application does not set a `Cache-Control` header to indicate that a page is private or should not be cached.\n3. The application accesses the session in a way that does not access the values, only the keys, and does not mutate the session.",
+   "id": "GHSA-68rp-wp8r-4726",
+   "modified": "2026-09-10T03:49:54.354981590Z",
+   "published": "2026-02-19T20:45:41Z",
+   "references": [
+    {
+     "type": "WEB",
+     "url": "https://github.com/pallets/flask/security/advisories/GHSA-68rp-wp8r-4726"
+    },
+    {
+     "type": "ADVISORY",
+     "url": "https://nvd.nist.gov/vuln/detail/CVE-2026-27205"
+    },
+    {
+     "type": "WEB",
+     "url": "https://github.com/pallets/flask/commit/089cb86dd22bff589a4eafb7ab8e42dc357623b4"
+    },
+    {
+     "type": "PACKAGE",
+     "url": "https://github.com/pallets/flask"
+    },
+    {
+     "type": "WEB",
+     "url": "https://github.com/pallets/flask/releases/tag/3.1.3"
+    }
+   ],
+   "schema_version": "1.9.0",
+   "severity": [
+    {
+     "score": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:P/VC:L/VI:N/VA:N/SC:N/SI:N/SA:N",
+     "type": "CVSS_V4"
+    }
+   ],
+   "summary": "Flask session does not add `Vary: Cookie` header when accessed in some ways"
+  },
+  "GHSA-m2qf-hxjv-5gpq": {
+   "affected": [
+    {
+     "database_specific": {
+      "source": "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2023/05/GHSA-m2qf-hxjv-5gpq/GHSA-m2qf-hxjv-5gpq.json"
+     },
+     "package": {
+      "ecosystem": "PyPI",
+      "name": "flask",
+      "purl": "pkg:pypi/flask"
+     },
+     "ranges": [
+      {
+       "events": [
+        {
+         "introduced": "2.3.0"
+        },
+        {
+         "fixed": "2.3.2"
+        }
+       ],
+       "type": "ECOSYSTEM"
+      }
+     ]
+    },
+    {
+     "database_specific": {
+      "source": "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2023/05/GHSA-m2qf-hxjv-5gpq/GHSA-m2qf-hxjv-5gpq.json"
+     },
+     "package": {
+      "ecosystem": "PyPI",
+      "name": "flask",
+      "purl": "pkg:pypi/flask"
+     },
+     "ranges": [
+      {
+       "events": [
+        {
+         "introduced": "0"
+        },
+        {
+         "fixed": "2.2.5"
+        }
+       ],
+       "type": "ECOSYSTEM"
+      }
+     ]
+    }
+   ],
+   "aliases": [
+    "CVE-2023-30861",
+    "PYSEC-2023-62"
+   ],
+   "database_specific": {
+    "cwe_ids": [
+     "CWE-539"
+    ],
+    "github_reviewed": true,
+    "github_reviewed_at": "2023-05-01T19:22:20Z",
+    "nvd_published_at": "2023-05-02T18:15:52Z",
+    "severity": "HIGH"
+   },
+   "details": "When all of the following conditions are met, a response containing data intended for one client may be cached and subsequently sent by a proxy to other clients. If the proxy also caches `Set-Cookie` headers, it may send one client's `session` cookie to other clients. The severity depends on the application's use of the session, and the proxy's behavior regarding cookies. The risk depends on _all_ these conditions being met.\n\n1. The application must be hosted behind a caching proxy that does not strip cookies or ignore responses with cookies.\n2. The application sets [`session.permanent = True`](https://flask.palletsprojects.com/en/2.3.x/api/#flask.session.permanent).\n2. The application does not access or modify the session at any point during a request.\n4. [`SESSION_REFRESH_EACH_REQUEST`](https://flask.palletsprojects.com/en/2.3.x/config/#SESSION_REFRESH_EACH_REQUEST) is enabled (the default).\n5. The application does not set a `Cache-Control` header to indicate that a page is private or should not be cached.\n\nThis happens because vulnerable versions of Flask only set the `Vary: Cookie` header when the session is accessed or modified, not when it is refreshed (re-sent to update the expiration) without being accessed or modified.",
+   "id": "GHSA-m2qf-hxjv-5gpq",
+   "modified": "2026-09-10T03:50:01.763387498Z",
+   "published": "2023-05-01T19:22:20Z",
+   "references": [
+    {
+     "type": "WEB",
+     "url": "https://github.com/pallets/flask/security/advisories/GHSA-m2qf-hxjv-5gpq"
+    },
+    {
+     "type": "ADVISORY",
+     "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-30861"
+    },
+    {
+     "type": "WEB",
+     "url": "https://github.com/pallets/flask/commit/70f906c51ce49c485f1d355703e9cc3386b1cc2b"
+    },
+    {
+     "type": "WEB",
+     "url": "https://github.com/pallets/flask/commit/afd63b16170b7c047f5758eb910c416511e9c965"
+    },
+    {
+     "type": "PACKAGE",
+     "url": "https://github.com/pallets/flask"
+    },
+    {
+     "type": "WEB",
+     "url": "https://github.com/pallets/flask/releases/tag/2.2.5"
+    },
+    {
+     "type": "WEB",
+     "url": "https://github.com/pallets/flask/releases/tag/2.3.2"
+    },
+    {
+     "type": "WEB",
+     "url": "https://github.com/pypa/advisory-database/tree/main/vulns/flask/PYSEC-2023-62.yaml"
+    },
+    {
+     "type": "WEB",
+     "url": "https://lists.debian.org/debian-lts-announce/2023/08/msg00024.html"
+    },
+    {
+     "type": "WEB",
+     "url": "https://security.netapp.com/advisory/ntap-20230818-0006"
+    },
+    {
+     "type": "WEB",
+     "url": "https://www.debian.org/security/2023/dsa-5442"
+    }
+   ],
+   "schema_version": "1.9.0",
+   "severity": [
+    {
+     "score": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+     "type": "CVSS_V3"
+    },
+    {
+     "score": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N",
+     "type": "CVSS_V4"
+    }
+   ],
+   "summary": "Flask vulnerable to possible disclosure of permanent session cookie due to missing Vary: Cookie header"
+  },
+  "GHSA-p6mc-m468-83gw": {
+   "affected": [
+    {
+     "package": {
+      "ecosystem": "npm",
+      "name": "lodash"
+     },
+     "ranges": [
+      {
+       "events": [
+        {
+         "fixed": "4.17.20",
+         "introduced": "0"
+        }
+       ],
+       "type": "SEMVER"
+      }
+     ]
+    }
+   ],
+   "aliases": [
+    "CVE-2020-8203"
+   ],
+   "database_specific": {
+    "cwe_ids": [
+     "CWE-1321",
+     "CWE-770"
+    ],
+    "severity": "High"
+   },
+   "details": "Prototype pollution in lodash before 4.17.20 allows an attacker to modify the prototype of Object via the zipObjectDeep function.",
+   "id": "GHSA-p6mc-m468-83gw",
+   "modified": "2025-08-12T21:56:17.174859Z",
+   "published": "2020-07-15T19:15:48Z",
+   "severity": [
+    {
+     "score": "7.5",
+     "type": "CVSS_V3"
+    }
+   ],
+   "summary": "Prototype Pollution in lodash"
+  },
+  "PYSEC-2023-62": {
+   "affected": [
+    {
+     "database_specific": {
+      "source": "https://github.com/pypa/advisory-database/blob/main/vulns/flask/PYSEC-2023-62.yaml"
+     },
+     "package": {
+      "ecosystem": "PyPI",
+      "name": "flask",
+      "purl": "pkg:pypi/flask"
+     },
+     "ranges": [
+      {
+       "events": [
+        {
+         "introduced": "0"
+        },
+        {
+         "fixed": "70f906c51ce49c485f1d355703e9cc3386b1cc2b"
+        },
+        {
+         "fixed": "afd63b16170b7c047f5758eb910c416511e9c965"
+        }
+       ],
+       "repo": "https://github.com/pallets/flask",
+       "type": "GIT"
+      },
+      {
+       "events": [
+        {
+         "introduced": "0"
+        },
+        {
+         "fixed": "2.2.5"
+        },
+        {
+         "introduced": "2.3.0"
+        },
+        {
+         "fixed": "2.3.2"
+        }
+       ],
+       "type": "ECOSYSTEM"
+      }
+     ]
+    }
+   ],
+   "aliases": [
+    "CVE-2023-30861",
+    "GHSA-m2qf-hxjv-5gpq"
+   ],
+   "details": "Flask is a lightweight WSGI web application framework. When all of the following conditions are met, a response containing data intended for one client may be cached and subsequently sent by the proxy to other clients. If the proxy also caches `Set-Cookie` headers, it may send one client's `session` cookie to other clients. The severity depends on the application's use of the session and the proxy's behavior regarding cookies. The risk depends on all these conditions being met.\n\n1. The application must be hosted behind a caching proxy that does not strip cookies or ignore responses with cookies.\n2. The application sets `session.permanent = True`\n3. The application does not access or modify the session at any point during a request.\n4. `SESSION_REFRESH_EACH_REQUEST` enabled (the default).\n5. The application does not set a `Cache-Control` header to indicate that a page is private or should not be cached.\n\nThis happens because vulnerable versions of Flask only set the `Vary: Cookie` header when the session is accessed or modified, not when it is refreshed (re-sent to update the expiration) without being accessed or modified. This issue has been fixed in versions 2.3.2 and 2.2.5.",
+   "id": "PYSEC-2023-62",
+   "modified": "2023-11-08T04:12:28.231927Z",
+   "published": "2023-05-02T18:15:00Z",
+   "references": [
+    {
+     "type": "FIX",
+     "url": "https://github.com/pallets/flask/commit/70f906c51ce49c485f1d355703e9cc3386b1cc2b"
+    },
+    {
+     "type": "WEB",
+     "url": "https://github.com/pallets/flask/releases/tag/2.3.2"
+    },
+    {
+     "type": "WEB",
+     "url": "https://github.com/pallets/flask/releases/tag/2.2.5"
+    },
+    {
+     "type": "ADVISORY",
+     "url": "https://github.com/pallets/flask/security/advisories/GHSA-m2qf-hxjv-5gpq"
+    },
+    {
+     "type": "FIX",
+     "url": "https://github.com/pallets/flask/commit/afd63b16170b7c047f5758eb910c416511e9c965"
+    }
+   ],
+   "schema_version": "1.7.3"
+  },
+  "PYSEC-2026-215": {
+   "affected": [
+    {
+     "database_specific": {
+      "source": "https://github.com/pypa/advisory-database/blob/main/vulns/idna/PYSEC-2026-215.yaml"
+     },
+     "ecosystem_specific": {},
+     "package": {
+      "ecosystem": "PyPI",
+      "name": "idna",
+      "purl": "pkg:pypi/idna"
+     },
+     "ranges": [
+      {
+       "events": [
+        {
+         "introduced": "0"
+        },
+        {
+         "fixed": "3.15"
+        }
+       ],
+       "type": "ECOSYSTEM"
+      }
+     ]
+    }
+   ],
+   "aliases": [
+    "CVE-2026-45409",
+    "GHSA-65pc-fj4g-8rjx"
+   ],
+   "details": "Internationalized Domain Names in Applications (IDNA) for Python provides support for Internationalized Domain Names in Applications (IDNA) and Unicode IDNA Compatibility Processing. In versions prior to 3.15, payloads such as `\"\\u0660\" * N` or `\"\\u30fb\" * N + \"\\u6f22\"` utilize the `valid_contexto` function prior to length rejection, and for high values of `N` will take a long time to process. This is the same issue as CVE-2024-3651, however the original remediation in 2024 was not a complete fix. A specially crafted argument to the `idna.encode()` function could consume significant resources. This may lead to a denial-of-service. Starting in version 3.14, the function rejects long inputs as soon as practicable prior to any further processing to minimize resource consumption. In version 3.15, this approach was extended to lesser used alternate functions (i.e. per-label conversions and codec support). A workaround is available. Domain names cannot exceed 253 characters in length. If this length limit is enforced prior to passing the domain to the `idna.encode()` function, it should no longer consume significant resources. This is triggered by arbitrarily large inputs that would not occur in normal usage, but may be passed to the library assuming there is no preliminary input validation by the higher-level application.",
+   "id": "PYSEC-2026-215",
+   "modified": "2026-06-16T16:15:04.639265054Z",
+   "published": "2026-06-05T23:16:43.343Z",
+   "references": [
+    {
+     "type": "ADVISORY",
+     "url": "https://github.com/kjd/idna/security/advisories/GHSA-65pc-fj4g-8rjx"
+    }
+   ],
+   "schema_version": "1.7.5",
+   "severity": [
+    {
+     "score": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
+     "type": "CVSS_V3"
+    }
+   ]
+  },
+  "PYSEC-2026-2151": {
+   "affected": [
+    {
+     "database_specific": {
+      "source": "https://github.com/pypa/advisory-database/blob/main/vulns/flask/PYSEC-2026-2151.yaml"
+     },
+     "ecosystem_specific": {},
+     "package": {
+      "ecosystem": "PyPI",
+      "name": "flask",
+      "purl": "pkg:pypi/flask"
+     },
+     "ranges": [
+      {
+       "events": [
+        {
+         "introduced": "0"
+        },
+        {
+         "fixed": "3.1.3"
+        }
+       ],
+       "type": "ECOSYSTEM"
+      }
+     ]
+    }
+   ],
+   "aliases": [
+    "CVE-2026-27205",
+    "GHSA-68rp-wp8r-4726"
+   ],
+   "details": "Flask is a web server gateway interface (WSGI) web application framework. In versions 3.1.2 and below, when the session object is accessed, Flask should set the Vary: Cookie header., resulting in a Use of Cache Containing Sensitive Information vulnerability. The logic instructs caches not to cache the response, as it may contain information specific to a logged in user. This is handled in most cases, but some forms of access such as the Python in operator were overlooked. The severity and risk depend on the application being hosted behind a caching proxy that doesn't ignore responses with cookies, not setting a Cache-Control header to mark pages as private or non-cacheable, and accessing the session in a way that only touches keys without reading values or mutating the session. The issue has been fixed in version 3.1.3.",
+   "id": "PYSEC-2026-2151",
+   "modified": "2026-07-13T07:15:25.033843440Z",
+   "published": "2026-02-21T06:17:00.910Z",
+   "references": [
+    {
+     "type": "ADVISORY",
+     "url": "https://github.com/pallets/flask/releases/tag/3.1.3"
+    },
+    {
+     "type": "ADVISORY",
+     "url": "https://github.com/pallets/flask/security/advisories/GHSA-68rp-wp8r-4726"
+    },
+    {
+     "type": "FIX",
+     "url": "https://github.com/pallets/flask/commit/089cb86dd22bff589a4eafb7ab8e42dc357623b4"
+    }
+   ],
+   "schema_version": "1.7.5",
+   "severity": [
+    {
+     "score": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:N/A:N",
+     "type": "CVSS_V3"
+    }
+   ]
+  }
+ },
+ "querybatch": {
+  "results": [
+   {
+    "vulns": [
+     {
+      "id": "GHSA-35jh-r3h4-6jhm",
+      "modified": "2026-10-17T02:55:38.085813876Z"
+     },
+     {
+      "id": "GHSA-p6mc-m468-83gw",
+      "modified": "2025-08-12T21:56:17.174859Z"
+     }
+    ]
+   },
+   {
+    "vulns": [
+     {
+      "id": "GHSA-68rp-wp8r-4726",
+      "modified": "2026-09-10T03:49:54.354981Z"
+     },
+     {
+      "id": "GHSA-m2qf-hxjv-5gpq",
+      "modified": "2026-09-10T03:50:01.763387Z"
+     },
+     {
+      "id": "PYSEC-2023-62",
+      "modified": "2023-11-08T04:12:28.231927Z"
+     },
+     {
+      "id": "PYSEC-2026-2151",
+      "modified": "2026-07-13T07:15:25.033843Z"
+     }
+    ]
+   },
+   {
+    "vulns": [
+     {
+      "id": "GHSA-65pc-fj4g-8rjx",
+      "modified": "2026-09-10T03:50:45.700124Z"
+     },
+     {
+      "id": "PYSEC-2026-215",
+      "modified": "2026-06-16T16:15:04.639265Z"
+     }
+    ]
+   }
+  ]
+ }
+}

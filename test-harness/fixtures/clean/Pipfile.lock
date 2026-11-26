@@ -1,0 +1,1 @@
+{"_meta":{"hash":{"sha256":"fixture-only-not-a-real-hash"},"pipfile-spec":6,"requires":{"python_version":"3.12"},"sources":[{"name":"pypi","url":"https://pypi.org/simple","verify_ssl":true}]},"default":{"click":{"version":"==8.1.7"}},"develop":{}}
