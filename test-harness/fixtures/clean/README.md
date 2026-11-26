@@ -2,3 +2,9 @@
 
 A repo with nothing to flag: no secrets, no vulnerable dependencies,
 no injection patterns. Expected repo-scan result: **100/100 (A)**.
+
+It also carries the clean-side Python manifests: `requirements.txt`
+(click 8.1.7, pinned and clean, plus an unpinned `requests>=2.0` line
+that must be skipped) and `Pipfile.lock` (click 8.1.7 — same package as
+requirements.txt, so the dep check must dedupe it to one query).
+Verified with `osv-clean-combined-response.json`.

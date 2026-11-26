@@ -185,7 +185,12 @@ node dist/cli.js repo ./my-project --json | jq '.score, .grade'
   that is how OSV works: `POST /v1/querybatch` returns only minimal vuln
   records, and the full record (aliases, severity, fixed versions) comes
   from `GET /v1/vulns/<id>`. Only package names + versions leave the
-  machine — never code. `--osv-fixture <file>` runs the deps check against
+  machine — never code. Python next, same flow: `requirements.txt`
+  (pinned `==` versions only — unpinned lines are skipped, not findings)
+  and `Pipfile.lock` (`default` + `develop`, pinned `==` only), queried
+  as PyPI. Query order is deterministic: npm (sorted by name), then
+  PyPI (sorted by name); one finding per vulnerable package
+  (`deps-vulnerable`, 12). `--osv-fixture <file>` runs the deps check against
   recorded responses instead of the network (how it is verified offline;
   the live API was verified reachable from this VM on 2026-11-24).
   The fixture is a wrapper holding both recorded steps
@@ -195,7 +200,15 @@ node dist/cli.js repo ./my-project --json | jq '.score, .grade'
   fixed 4.17.21, and GHSA-p6mc-m468-83gw / CVE-2020-8203, Prototype
   Pollution, fixed 4.17.20) and `osv-lodash-clean-response.json` (a
   recorded no-vulns snapshot for lodash 4.17.21, exercising the clean
-  path). Provenance, stated plainly: both are hand-recorded from live
+  path). The combined fixtures cover npm + PyPI together and are the
+  ones the dirty/clean fixture runs use:
+  `osv-dirty-combined-response.json` (lodash 4.17.11 + flask 2.0.1 +
+  idna 3.7) and `osv-clean-combined-response.json` (lodash 4.17.21 +
+  click 8.1.7, snapshot no-vulns). Flask 2.0.1 records 4 OSV ids
+  covering 2 CVEs (CVE-2023-30861 session-cookie Vary header, fix
+  2.3.2; CVE-2026-27205, fix 3.1.3 — highest fixed version across the
+  package is 3.1.3); idna 3.7 records 2 ids for 1 CVE (CVE-2026-45409,
+  fix 3.15). Provenance, stated plainly: both are hand-recorded from live
   OSV responses fetched 2026-11-24 — the GHSA/CVE ids, summaries, and
   fixed versions are verbatim from OSV; the files are static stand-ins
   for the network responses. (Live OSV currently lists 6 vulns for
@@ -209,7 +222,9 @@ node dist/cli.js repo ./my-project --json | jq '.score, .grade'
   tests the clean code path, not current live data. Fix guidance
   takes the highest fixed version across a package's vulns, and only when
   every listed vuln has a published fix (4.17.21 for lodash 4.17.11 — it
-  fixes both listed vulns). OSV failure is an `error`, never a `fail`.
+  fixes both listed vulns). Fix versions that are not version-shaped
+  (some records list a commit SHA as "fixed") are ignored when picking
+  the highest fix. OSV failure is an `error`, never a `fail`.
 - **Injection (JS/TS)** — hand-written regex patterns (dynamic code
   execution, shell commands built from input, SQL string building,
   unsanitized HTML assignment). No semgrep/opengrep shell-outs; AST/taint

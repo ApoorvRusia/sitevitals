@@ -1,0 +1,4 @@
+# Dirty fixture: pinned Python deps (vulnerable) + unpinned lines (skipped, not findings).
+idna==3.7
+flask>=2.0  # unpinned: skipped, not a finding (the pinned flask comes from Pipfile.lock)
+# a comment line is skipped too

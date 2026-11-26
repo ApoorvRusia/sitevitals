@@ -24,6 +24,8 @@ export interface RepoFinding extends CheckResult {
   fixedVersion?: string;
   /** Deps: GHSA/CVE ids for this package. */
   vulnIds?: string[];
+  /** Deps: ecosystem the package was queried in ('npm' | 'PyPI' | 'Go'). */
+  ecosystem?: string;
 }
 
 export interface ScannedFile {
