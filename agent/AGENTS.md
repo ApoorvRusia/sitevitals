@@ -90,7 +90,10 @@ no semgrep/opengrep shell-outs, AST/taint is a later upgrade path.
 Working tree only — no git-history scanning. Local
 path only — no cloning. OSV deps check is fixture-verified locally
 (`--osv-fixture`); the live API path is separate code and OSV failure is
-an `error`, never a `fail`.
+an `error`, never a `fail`. `--sbom` inventories the repo instead of
+scoring it (CycloneDX-ish JSON: components with name/version/purl/
+license where declared; npm + PyPI + Go from the same parsers the
+checks use) — no checks run, no score, no report file.
 
 ## Guardrails and approval gates
 

@@ -63,7 +63,7 @@ export function compareSemver(a: string, b: string): number {
   return 0;
 }
 
-function parseLockfile(content: string): DepPackage[] {
+export function parseLockfile(content: string): DepPackage[] {
   let parsed: unknown;
   try {
     parsed = JSON.parse(content);
