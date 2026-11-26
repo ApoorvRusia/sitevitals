@@ -16,6 +16,7 @@ export const WEIGHTS: Record<string, number> = {
   'security-txt': 3,
   'tls-cert': 12,
   'tls-version': 8,
+  'cert-expiry-window': 8,
   spf: 7,
   dmarc: 7,
   caa: 5,

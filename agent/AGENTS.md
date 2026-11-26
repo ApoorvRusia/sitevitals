@@ -44,10 +44,12 @@ NODE_EXTRA_CA_CERTS=test-harness/cert.pem node dist/cli.js https://localhost:844
 ```
 
 Acceptance (must hold after every change): hardened = 81/100 (B) —
-12 passed, 3 failed (SPF/DMARC/CAA, honestly absent on localhost — DNS
+13 passed, 3 failed (SPF/DMARC/CAA, honestly absent on localhost — DNS
 records cannot be published for `localhost`), 1 error (no plain-HTTP
-listener in the harness); bare = 18/100 (F) — 2 passed, 13 failed (the
-previous 12 plus `security-txt`), every finding with a fix. The cert-trust step is required:
+listener in the harness); bare = 18/100 (F) — 3 passed, 13 failed,
+every finding with a fix. Both pass `cert-expiry-window` (shared harness
+cert, valid until Oct 2027); the window fail path is verified with a
+throwaway 5-day cert as documented in the README. The cert-trust step is required:
 without `NODE_EXTRA_CA_CERTS`, scores match by arithmetic but with the
 wrong composition. I run live-internet checks on my own machine;
 sandboxed environments may block direct TLS probes on external targets.

@@ -49,7 +49,7 @@ To regenerate them: start the harness (`node test-harness/serve.mjs`), then run 
 ## How a check runs
 
 1. **Normalize** — the URL is forced to https, the hash stripped, the port defaulted to 443.
-2. **Four check groups run in parallel** — nothing runs first; they all fire at once, each with a 20s timeout: HTTPS redirect; headers (HSTS, CSP, framing, nosniff, referrer-policy, version-leak, cookie flags, Permissions-Policy, isolation headers); TLS (certificate, version floor); DNS (SPF, DMARC, CAA).
+2. **Four check groups run in parallel** — nothing runs first; they all fire at once, each with a 20s timeout: HTTPS redirect; headers (HSTS, CSP, framing, nosniff, referrer-policy, version-leak, cookie flags, Permissions-Policy, isolation headers, security.txt); TLS (certificate, version floor, expiry window); DNS (SPF, DMARC, CAA).
 3. **Score** — 100 minus the weights of failed checks. A check that errors (timeout, DNS down) never counts as a vulnerability.
 4. **Report** — console summary + self-contained HTML report in `reports/`.
 
@@ -85,6 +85,7 @@ flowchart TD
 | `security-txt` | security.txt served at /.well-known/security.txt (2xx) | 3 |
 | `tls-cert` | Certificate validity + expiry | 12 |
 | `tls-version` | TLS 1.2+ floor | 8 |
+| `cert-expiry-window` | Leaf cert expires within 30 days (in addition to validity) | 8 |
 | `spf` | SPF TXT record | 7 |
 | `dmarc` | DMARC TXT record (enforcing policy) | 7 |
 | `caa` | CAA record (which CAs may issue for the domain) | 5 |
@@ -116,11 +117,29 @@ a plain-English fix snippet in both the console output and the HTML report.
 Test harness in `test-harness/`: two localhost servers — a hardened one and
 a bare one (no headers, version-leaking Server banner). Results:
 
-- Hardened server: **81/100 (Grade B)** — 12 passed, 3 failed (SPF/DMARC/
+- Hardened server: **81/100 (Grade B)** — 13 passed, 3 failed (SPF/DMARC/
   CAA, honestly absent on localhost — DNS records cannot be published for
-  `localhost`), 1 error (no plain-HTTP listener in harness).
-- Bare server: **18/100 (Grade F)** — 13 failed (the previous 12 plus
-  `security-txt`: the bare server 404s it), every finding with a fix.
+  `localhost`), 1 error (no plain-HTTP listener in harness). Both targets
+  pass `cert-expiry-window`: the harness cert is valid until Oct 2027, so
+  the fail path is verified separately with a throwaway 5-day cert (see
+  below) rather than by the harness.
+- Bare server: **18/100 (Grade F)** — 13 failed (unchanged), every finding
+  with a fix. The bare server passes `cert-expiry-window` for the same
+  reason — it shares the harness cert.
+
+Fail-path check for `cert-expiry-window` (throwaway, not in the harness):
+generate a 5-day cert, serve it from a scratch server, and scan it with
+that cert trusted — `tls-cert` passes (the cert is valid) while
+`cert-expiry-window` fails:
+
+```bash
+mkdir /tmp/sv-shortcert && cd /tmp/sv-shortcert
+openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 5 \
+  -nodes -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+node -e "require('node:https').createServer({key:require('node:fs').readFileSync('key.pem'),cert:require('node:fs').readFileSync('cert.pem')},(_,res)=>{res.writeHead(200);res.end('ok')}).listen(18443)"
+NODE_EXTRA_CA_CERTS=/tmp/sv-shortcert/cert.pem node dist/cli.js https://localhost:18443 --json | jq '.results[] | select(.id=="cert-expiry-window")'
+# → status "fail", "expires in 5 days … inside the 30-day renewal window"
+```
 
 Re-run from this VM on 2026-10-26 reproduced both scores exactly.
 
