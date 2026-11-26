@@ -169,7 +169,11 @@ node dist/cli.js repo ./my-project --json | jq '.score, .grade'
   generic API keys/passwords, JWT, npm, SendGrid), hand-written from the
   known default rule set — no live fetch was available in this sandbox,
   and no Gitleaks code is used, patterns only. No shell-outs to
-  gitleaks/semgrep; the engine is in-house.
+  gitleaks/semgrep; the engine is in-house. Extra rules, same source and
+  same redaction, added one PR per check: Azure storage key, Google API
+  key, GCP service-account key file, Twilio API key, OpenAI API key,
+  database connection string (postgres/mysql/mongodb URI with embedded
+  credentials).
 - **Caps** — max 5,000 files, 1 MiB per file; `node_modules/.git/dist`
   skipped; OSV failure is an `error`, not a `fail`.
 - **Allowlist** — a `.sitevitals-allowlist.json` in the scanned root
