@@ -13,4 +13,7 @@ And the clean-side Dockerfile: `FROM node:20.11.0` (pinned),
 `USER node` (non-root), `ENV NODE_ENV=production` (no secret).
 The clean lockfile's lodash entry carries its real MIT license, so
 the license audit passes it.
+The clean workflow (`.github/workflows/ci.yml`) pins both actions to
+full 40-hex SHAs and keeps permissions at the job level only
+(`contents: read`), so the CI check passes it.
 Verified with `osv-clean-combined-response.json`.
