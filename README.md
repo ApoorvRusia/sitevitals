@@ -1,4 +1,4 @@
-# SiteVitals — v1 (URL checker)
+# SiteVitals
 
 ## What it is
 
@@ -287,11 +287,10 @@ steps (there are none — report-only), emergency stop / iteration caps
 non-directory path is a hard error) plus secret/PII output checks
 (redacted previews, allowlist).
 
-## Next (v2)
+## Roadmap
 
-- JSON output flag: DONE in this PR (`--json`, pure JSON on stdout).
-- Repo scanning (secrets, deps, injection) — scaffold in this PR; secrets,
-  deps and injection land one slice each, npm first. Git-history scanning
-  and Python/PyPI are deferred. Secrets rules are vendored Gitleaks
-  defaults (MIT, attributed).
-- Web UI — later PR, after repo scanning.
+Shipped: URL checker (v1), repo scanning with 14 checks (secrets, deps via
+OSV for npm/PyPI/Go, injection patterns, Dockerfile, license audit, CI
+config, SBOM export), `--json` output for agents and CI.
+
+Deferred: git-history scanning, GitHub-URL input, web UI.
