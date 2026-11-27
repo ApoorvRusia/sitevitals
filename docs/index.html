@@ -432,7 +432,6 @@
           <a href="#scan">Live scan</a>
           <a href="#checks">Checks</a>
           <a href="#agents">For agents</a>
-          <a href="#lab">Design lab</a>
           <a href="#roadmap">Roadmap</a>
         </nav>
         <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle light / dark theme">
@@ -472,37 +471,14 @@
                 <!-- WebGL view -->
                 <div class="stage-view active" id="view-gl" role="img" aria-label="Interactive 3D shield rendered in WebGL, slowly rotating with orbiting rings and a scanning sweep">
                   <canvas id="glcanvas"></canvas>
-                  <div class="gl-fallback-note" id="glNote">WebGL unavailable in this browser — showing the mesh hero instead.</div>
+                  <div class="gl-fallback-note" id="glNote">WebGL unavailable in this browser.</div>
                 </div>
-                <!-- Terminal view -->
-                <div class="stage-view" id="view-term" aria-hidden="true">
-                  <div class="term">
-                    <div class="term-bar"><i style="background:#fb7185"></i><i style="background:#fbbf24"></i><i style="background:#34d399"></i><span class="t">sitevitals — zsh</span></div>
-                    <div class="term-body" id="termBody"></div>
-                  </div>
-                </div>
-                <!-- Mesh view -->
-                <div class="stage-view" id="view-mesh" aria-hidden="true">
-                  <div class="mesh">
-                    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
-                    <div class="dial-card">
-                      <div class="dial-num"><span id="meshScore">0</span><small>/100</small></div>
-                      <span class="dial-grade">GRADE B</span>
-                      <p>Hardened test site — published sample report</p>
-                    </div>
-                  </div>
-                </div>
+                
+                
                 <div class="stage-caption"><span class="live-dot" aria-hidden="true"></span><span id="stageCaption">WebGL hero · three.js · drag to orbit, move to parallax</span></div>
               </div>
 
-              <div class="switcher" role="group" aria-label="Hero style options">
-                <span class="lbl">Hero options</span>
-                <div class="seg" id="heroSeg">
-                  <button type="button" data-hero="gl" aria-pressed="true"><span class="k">A</span> WebGL 3D</button>
-                  <button type="button" data-hero="term" aria-pressed="false"><span class="k">B</span> Live terminal</button>
-                  <button type="button" data-hero="mesh" aria-pressed="false"><span class="k">C</span> Gradient mesh</button>
-                </div>
-              </div>
+              
             </div>
           </div>
         </div>
@@ -630,47 +606,7 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
         </div>
       </section>
 
-      <!-- ================= DESIGN LAB ================= -->
-      <section id="lab">
-        <div class="wrap">
-          <div class="sec-head reveal">
-            <span class="sec-tag">Design lab</span>
-            <h2>More options: re-skin the whole page</h2>
-            <p>This showcase is itself the demo. Four accent themes, light and dark, three hero treatments above — every control on this page is live, including the ones in this section.</p>
-          </div>
-          <div class="lab-grid">
-            <div class="card reveal">
-              <h3>Accent theme</h3>
-              <p>Recolors the gradients, the 3D shield, the dial, and every control — instantly.</p>
-              <div class="swatches" role="group" aria-label="Accent color">
-                <button class="swatch" type="button" data-accent-btn="cyan" aria-pressed="true"><span class="ball" style="background:linear-gradient(135deg,#22d3ee,#818cf8)"></span>Cyan</button>
-                <button class="swatch" type="button" data-accent-btn="emerald" aria-pressed="false"><span class="ball" style="background:linear-gradient(135deg,#34d399,#22d3ee)"></span>Emerald</button>
-                <button class="swatch" type="button" data-accent-btn="amber" aria-pressed="false"><span class="ball" style="background:linear-gradient(135deg,#fbbf24,#fb923c)"></span>Amber</button>
-                <button class="swatch" type="button" data-accent-btn="rose" aria-pressed="false"><span class="ball" style="background:linear-gradient(135deg,#fb7185,#f472b6)"></span>Rose</button>
-              </div>
-              <div class="mini-preview" aria-hidden="true">
-                <div class="mp-bar"></div>
-                <div class="mp-body">
-                  <div class="mp-title">Preview — SiteVitals card</div>
-                  <div class="mp-line" style="width:82%"></div>
-                  <div class="mp-line" style="width:58%"></div>
-                  <span class="mp-btn">Run a scan</span>
-                </div>
-              </div>
-            </div>
-            <div class="card reveal">
-              <h3>Hero treatment</h3>
-              <p>Three directions for the same hero — jump between them and compare. The WebGL shield is real three.js, rendered live in your browser.</p>
-              <div class="scen-row" role="group" aria-label="Hero treatment shortcuts">
-                <button class="scen" type="button" data-hero-jump="gl">A · WebGL 3D shield</button>
-                <button class="scen" type="button" data-hero-jump="term">B · Live terminal</button>
-                <button class="scen" type="button" data-hero-jump="mesh">C · Gradient mesh</button>
-              </div>
-              <p style="margin-top:16px">Plus the light/dark toggle in the top bar. Everything here is hand-written CSS and JS — no trackers, no CDN libraries at all: three.js is bundled locally with the page and the fonts are self-hosted, the same legal-6 discipline SiteVitals itself ships under.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      
 
       <!-- ================= ROADMAP ================= -->
       <section id="roadmap">
@@ -834,6 +770,7 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
           currentHero = name;
           ["gl", "term", "mesh"].forEach(function (v) {
             var el = document.getElementById("view-" + v);
+            if (!el) return;
             var on = v === name;
             el.classList.toggle("active", on);
             el.setAttribute("aria-hidden", String(!on));
@@ -1167,7 +1104,7 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
           renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
         } catch (e) {
           note.style.display = "block";
-          document.querySelector('#heroSeg [data-hero="mesh"]').click();
+          var _mb = document.querySelector('#heroSeg [data-hero="mesh"]'); if (_mb) _mb.click();
           return;
         }
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
