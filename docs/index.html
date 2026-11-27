@@ -340,9 +340,7 @@
 
       /* ---------- engine / counters ---------- */
       .engine {
-        border-radius: 22px; padding: 40px; position: relative; overflow: hidden;
-        background: linear-gradient(140deg, color-mix(in srgb, var(--accent) 14%, var(--bg-2)), var(--bg-2) 60%);
-        border: 1px solid var(--line);
+        padding: 8px 0; position: relative;
       }
       .engine h2 { font-size: clamp(1.9rem, 4.4vw, 3rem); letter-spacing: -0.03em; text-transform: uppercase; margin: 0 0 14px; font-weight: 800; line-height: 1.08; }
       .engine p { color: var(--muted); max-width: 44rem; margin: 0; font-size: 1.02rem; }
@@ -1434,7 +1432,11 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
           var sp = reduced ? 0.15 : 1;
           group.rotation.y = t * 0.45 * sp;
           group.rotation.x = Math.sin(t * 0.4) * 0.18 * sp;
-          core.scale.setScalar(1 + Math.sin(t * 2) * 0.06 * sp);
+          var beat = Math.pow(Math.max(Math.sin(t * 2.2), 0), 3); /* sharp heartbeat pulse */
+          core.scale.setScalar(1 + beat * 0.14 * sp);
+          core.material.emissiveIntensity = 1.1 + beat * 1.6 * sp;
+          core.material.emissive.setHSL(0.52 - beat * 0.04, 1, 0.55 + beat * 0.18);
+          rim.intensity = 14 + beat * 14 * sp;
           shell.rotation.y = -t * 0.3 * sp; shell.rotation.x = t * 0.2 * sp;
           rings[0].rotation.x = t * 0.7 * sp; rings[0].rotation.y = t * 0.3 * sp;
           rings[1].rotation.y = t * 0.55 * sp; rings[1].rotation.z = t * 0.25 * sp;
