@@ -71,6 +71,12 @@
     answerable; fixes, not just findings; and every check is a passive
     read — no scans, no payloads, nothing that touches the target beyond
     asking it the same questions a browser would.</p>
+    <p><strong>Built in-house, zero dependencies:</strong> the checking
+    engine is written from scratch in TypeScript on Node.js — no
+    shell-outs to gitleaks, semgrep, or osv-scanner, and zero runtime
+    dependencies. Rule patterns are vendored as data (MIT Gitleaks
+    defaults, attributed); the only network call is the OSV lookup. There
+    is no supply chain to audit in the auditor.</p>
   </div>
 
   <div class="scores">
