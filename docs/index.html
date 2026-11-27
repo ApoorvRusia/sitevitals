@@ -1014,6 +1014,28 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
         document.getElementById("btnBare").addEventListener("click", function () { runScan("bare"); });
         document.getElementById("btnRepo").addEventListener("click", runRepoScan);
 
+        /* Auto-start: run one random sample when the simulator scrolls into view,
+           so the log panel is never a blank black box. Runs once; buttons still work. */
+        (function () {
+          var started = false;
+          function autoStart() {
+            if (started) return; started = true;
+            var picks = ["btnHardened", "btnBare", "btnRepo"];
+            var id = picks[Math.floor(Math.random() * picks.length)];
+            var b = document.getElementById(id);
+            if (b) b.click();
+          }
+          var sec = document.getElementById("scan");
+          if (sec && "IntersectionObserver" in window) {
+            var io = new IntersectionObserver(function (entries) {
+              entries.forEach(function (en) { if (en.isIntersecting) { autoStart(); io.disconnect(); } });
+            }, { threshold: 0.25 });
+            io.observe(sec);
+          } else {
+            setTimeout(autoStart, 1200);
+          }
+        })();
+
         /* ---------------- exit-code playground ---------------- */
         var scen = "hardened";
         var scenBtns = Array.prototype.slice.call(document.querySelectorAll("[data-scen]"));
