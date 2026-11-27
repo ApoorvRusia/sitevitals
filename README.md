@@ -4,7 +4,14 @@
 
 SiteVitals is a fast, passive hygiene audit for any website. Give it a URL and it checks the security basics — HTTPS redirect, security headers (HSTS, CSP, framing, nosniff, referrer-policy, version leaks, cookie flags), TLS certificate and version, and DNS records (SPF, DMARC) — then scores the site out of 100 with a grade and a plain-English fix for every failure. Reports are self-contained HTML files: emailable, open offline, no dashboard needed.
 
-The checking engine is built in-house in TypeScript on Node.js, with zero runtime dependencies: no shell-outs to gitleaks/semgrep/osv-scanner, rule patterns vendored as data (MIT Gitleaks defaults, attributed), and the OSV API as the only network call. There is no supply chain to audit in the auditor.
+
+## Built in-house, zero dependencies
+
+The checking engine is built in-house in TypeScript on Node.js, with zero
+runtime dependencies: no shell-outs to gitleaks/semgrep/osv-scanner, rule
+patterns vendored as data (MIT Gitleaks defaults, attributed), and the OSV
+API as the only network call. There is no supply chain to audit in the
+auditor.
 
 ## Why we need it
 
