@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sec-check · localhost · 15/100</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #1f2937; }
+  .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+  .score-row { display: flex; align-items: center; gap: 1.5rem; }
+  .dial { width: 96px; height: 96px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; font-weight: 700; color: #fff; background: #ef4444; }
+  .meta { color: #6b7280; font-size: .85rem; }
+  h2 { font-size: 1.1rem; margin: 1.5rem 0 .5rem; }
+  .finding { border: 1px solid #e5e7eb; border-radius: 8px; padding: .75rem 1rem; margin-bottom: .5rem; }
+  .finding.pass { opacity: .85; }
+  .finding.fail { border-left: 4px solid #ef4444; }
+  .finding.error { border-left: 4px solid #9ca3af; }
+  .finding-head { margin-bottom: .25rem; }
+  .sev { font-size: .7rem; text-transform: uppercase; padding: .1rem .4rem; border-radius: 999px; color: #fff; }
+  .sev.high { background: #ef4444; } .sev.medium { background: #f59e0b; } .sev.low { background: #6b7280; }
+  .detail { font-size: .9rem; }
+  .fix { margin-top: .4rem; font-size: .85rem; background: #f9fafb; border-radius: 6px; padding: .5rem .75rem; }
+  .fix-label { font-weight: 600; color: #059669; }
+  code { font-family: ui-monospace, monospace; }
+  footer { margin-top: 2rem; font-size: .8rem; color: #9ca3af; }
+  details.passes summary { cursor: pointer; color: #6b7280; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="score-row">
+      <div class="dial">15</div>
+      <div>
+        <h1 style="margin:0">Grade F</h1>
+        <div class="meta">localhost · scanned 2026-11-25 18:20:06 UTC<br>
+        3 passed · 14 failed · 1 errors · passive checks only</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Findings (14)</h2>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>Clickjacking protection</strong> <span class="sev medium">medium</span></div>
+      <div class="detail">No X-Frame-Options header and no CSP frame-ancestors.</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Send: X-Frame-Options: DENY (or SAMEORIGIN if frames are needed).</code></div>
+    </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>MIME sniffing protection</strong> <span class="sev medium">medium</span></div>
+      <div class="detail">No X-Content-Type-Options header.</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Send: X-Content-Type-Options: nosniff</code></div>
+    </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>Cross-origin isolation</strong> <span class="sev medium">medium</span></div>
+      <div class="detail">No Cross-Origin-Opener-Policy header. COEP absent; CORP absent.</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Send: Cross-Origin-Opener-Policy: same-origin (add Cross-Origin-Embedder-Policy: require-corp once all subresources carry CORP or CORS).</code></div>
+    </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>Cookie flags</strong> <span class="sev medium">medium</span></div>
+      <div class="detail">1 of 1 cookie(s) missing Secure, HttpOnly or SameSite (e.g. session=abc123).</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Set cookies with all three flags: Set-Cookie: name=value; Secure; HttpOnly; SameSite=Lax (Strict for session cookies that never need cross-site sends).</code></div>
+    </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>SPF record</strong> <span class="sev medium">medium</span></div>
+      <div class="detail">No SPF TXT record on the domain — anyone can spoof email from it.</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Publish TXT: v=spf1 include:&lt;your-mail-provider&gt; -all (replace with your actual sender set).</code></div>
+    </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>DMARC record</strong> <span class="sev medium">medium</span></div>
+      <div class="detail">No DMARC TXT record at _dmarc.localhost</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Publish TXT at _dmarc: v=DMARC1; p=quarantine; rua=mailto:dmarc@localhost</code></div>
+    </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>CAA record</strong> <span class="sev medium">medium</span></div>
+      <div class="detail">No CAA record on the domain — any CA can issue a certificate for it.</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Publish a CAA record naming your CA, e.g. TXT: 0 issue &quot;letsencrypt.org&quot; (and 0 issuewild for wildcard issuance).</code></div>
+    </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>HSTS preload eligibility</strong> <span class="sev low">low</span></div>
+      <div class="detail">No Strict-Transport-Security header, so the site cannot be preload-eligible.</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Send: Strict-Transport-Security: max-age=31536000; includeSubDomains; preload — then submit the domain at hstspreload.org.</code></div>
+    </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>Referrer-Policy</strong> <span class="sev low">low</span></div>
+      <div class="detail">No Referrer-Policy header.</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Send: Referrer-Policy: strict-origin-when-cross-origin</code></div>
+    </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>Version disclosure</strong> <span class="sev low">low</span></div>
+      <div class="detail">Headers disclose versions: BadServer/1.2.3, Express/4.21.</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Hide version banners (e.g. Nginx: server_tokens off; strip X-Powered-By at the framework level).</code></div>
+    </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>Permissions-Policy</strong> <span class="sev low">low</span></div>
+      <div class="detail">No Permissions-Policy header.</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Send: Permissions-Policy: camera=(), microphone=(), geolocation=() (add any feature the site actually uses).</code></div>
+    </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>security.txt</strong> <span class="sev low">low</span></div>
+      <div class="detail">No security.txt (/.well-known/security.txt returned 404).</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Publish /.well-known/security.txt with at least a Contact line (RFC 9116): Contact: mailto:security@example.com</code></div>
+    </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>HSTS header</strong> <span class="sev high">high</span></div>
+      <div class="detail">No Strict-Transport-Security header sent.</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Send: Strict-Transport-Security: max-age=31536000; includeSubDomains; preload</code></div>
+    </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>Content-Security-Policy</strong> <span class="sev high">high</span></div>
+      <div class="detail">No Content-Security-Policy header.</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Start with: Content-Security-Policy: default-src &#39;self&#39;; and tighten per resource type.</code></div>
+    </div>
+  <h2>Could not run (1)</h2>
+    <div class="finding error">
+      <div class="finding-head">⚪ ERROR <strong>HTTP → HTTPS redirect</strong></div>
+      <div class="detail">Could not probe http:// (fetch failed).</div>
+      
+    </div>
+  <details class="passes"><summary>Passed checks (3)</summary>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>Certificate validity</strong></div>
+      <div class="detail">Valid certificate for localhost; expires in 335 days (Oct 26 18:44:33 2027 GMT).</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>Certificate expiry window</strong></div>
+      <div class="detail">Certificate for localhost expires in 335 days (Oct 26 18:44:33 2027 GMT) — outside the 30-day renewal window.</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>TLS version floor</strong></div>
+      <div class="detail">Negotiated TLSv1.3.</div>
+      
+    </div></details>
+
+  <footer>Generated by sec-check v1 (5-Minute Security Checker) — passive hygiene audit, no scans or payloads.</footer>
+</body>
+</html>

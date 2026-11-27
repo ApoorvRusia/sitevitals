@@ -10,7 +10,7 @@
   * { box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
          margin: 0; line-height: 1.6; color: #1a1a1a; background: #fafafa; }
-  main { max-width: 760px; margin: 0 auto; padding: 48px 24px 64px; }
+  main { max-width: 780px; margin: 0 auto; padding: 48px 24px 64px; }
   h1 { font-size: 2.2rem; margin: 0 0 8px; }
   .tagline { font-size: 1.15rem; opacity: .85; margin: 0 0 28px; }
   h2 { margin-top: 36px; }
@@ -21,6 +21,12 @@
   .scores { display: flex; gap: 16px; flex-wrap: wrap; }
   .score { flex: 1 1 200px; text-align: center; }
   .score b { font-size: 1.8rem; display: block; }
+  table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+  th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; }
+  th { background: #f4f4f4; }
+  .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .flow .step { background: #eef4ff; border: 1px solid #c9dcff; border-radius: 8px; padding: 8px 12px; font-size: .95rem; }
+  .flow .arrow { opacity: .6; }
   a { color: #0b5ed7; }
   footer { margin-top: 48px; font-size: .9rem; opacity: .75; }
 </style>
@@ -37,25 +43,60 @@
   leave your machine (for the OSV lookup).</p>
 
   <div class="scores">
-    <div class="card score"><b>81 / 100 · B</b>hardened test site</div>
-    <div class="card score"><b>15 / 100 · F</b>bare test site</div>
+    <div class="card score"><b>81 / 100 · B</b>hardened test site<br><a href="examples/localhost-hardened-8443.html">See the report</a></div>
+    <div class="card score"><b>15 / 100 · F</b>bare test site<br><a href="examples/localhost-bare-8080.html">See the report</a></div>
     <div class="card score"><b>100 / 100 · A</b>clean repo fixture</div>
+  </div>
+
+  <h2>Sample reports</h2>
+  <div class="card">
+    <p>Real output from the test harness — open them in your browser:</p>
+    <ul>
+      <li><a href="examples/localhost-hardened-8443.html">Hardened site — 81/100 (Grade B)</a>: 14 passed, 3 failed (SPF/DMARC/CAA, honestly absent on localhost).</li>
+      <li><a href="examples/localhost-bare-8080.html">Bare site — 15/100 (Grade F)</a>: 14 failed, every finding with a plain-English fix.</li>
+    </ul>
   </div>
 
   <h2>What it checks</h2>
   <div class="card">
-    <p><strong>URL mode:</strong> HTTPS redirect, security headers (HSTS, CSP,
-    framing, nosniff, referrer-policy, Permissions-Policy, isolation headers),
-    cookie flags (Secure + HttpOnly + SameSite), TLS certificate + version +
-    expiry window, DNS (SPF, DMARC, CAA), <code>/.well-known/security.txt</code>.</p>
-    <p><strong>Repo mode</strong> (<code>sitevitals repo &lt;path&gt;</code>): secrets
-    (vendored MIT Gitleaks rule patterns, redacted reporting), vulnerable
-    dependencies via OSV (npm, PyPI, Go), injection patterns, Dockerfile
-    hygiene, license audit, CI config, and a CycloneDX SBOM export
-    (<code>--sbom</code>).</p>
+    <p><strong>URL mode</strong> — 18 passive checks, score = 100 minus failed weights:</p>
+    <table>
+      <tr><th>Check</th><th>Weight</th><th>Check</th><th>Weight</th></tr>
+      <tr><td>HTTP → HTTPS redirect</td><td>10</td><td>Cookie flags (Secure/HttpOnly/SameSite)</td><td>6</td></tr>
+      <tr><td>Strict-Transport-Security</td><td>12</td><td>Permissions-Policy</td><td>3</td></tr>
+      <tr><td>HSTS preload eligibility</td><td>3</td><td>Isolation headers (COOP)</td><td>5</td></tr>
+      <tr><td>Content-Security-Policy</td><td>12</td><td>security.txt</td><td>3</td></tr>
+      <tr><td>Clickjacking protection</td><td>8</td><td>Certificate validity + expiry</td><td>12</td></tr>
+      <tr><td>X-Content-Type-Options</td><td>5</td><td>TLS 1.2+ floor</td><td>8</td></tr>
+      <tr><td>Referrer-Policy</td><td>3</td><td>Cert expires within 30 days</td><td>8</td></tr>
+      <tr><td>Version disclosure</td><td>6</td><td>SPF / DMARC / CAA DNS records</td><td>7 / 7 / 5</td></tr>
+    </table>
+    <p><strong>Repo mode</strong> (<code>sitevitals repo &lt;path&gt;</code>) — its own 100-point score:</p>
+    <ul>
+      <li><strong>Secrets</strong> — vendored MIT Gitleaks rule patterns, redacted previews only, never verified live</li>
+      <li><strong>Dependencies</strong> — OSV.dev lookups for npm, PyPI, and Go manifests; fix guidance picks the highest fixed version</li>
+      <li><strong>Injection patterns</strong> — JS/TS regex checks (dynamic code execution, shell-from-input, SQL string building, unsanitized HTML)</li>
+      <li><strong>Dockerfile</strong> — root user, secrets in ENV/ARG, unpinned base image</li>
+      <li><strong>License audit</strong> — copyleft and unknown licenses in the npm tree</li>
+      <li><strong>CI config</strong> — unpinned actions, write-all permissions in GitHub workflows</li>
+      <li><strong>SBOM</strong> — <code>--sbom</code> emits a CycloneDX 1.5 inventory of the same manifests</li>
+    </ul>
     <p>Output: a human report card (self-contained HTML) plus
-    <code>--json</code> for agents and CI. All checks are passive reads —
-    no scans, no payloads.</p>
+    <code>--json</code> for agents and CI. Report-only — it never changes
+    the scanned repo.</p>
+  </div>
+
+  <h2>How it works</h2>
+  <div class="card">
+    <div class="flow">
+      <span class="step">CLI: URL or repo path</span><span class="arrow">→</span>
+      <span class="step">Normalize + parallel checks (20s timeouts)</span><span class="arrow">→</span>
+      <span class="step">Score: 100 − failed weights</span><span class="arrow">→</span>
+      <span class="step">Console summary + HTML report (+ JSON)</span>
+    </div>
+    <p>Repo mode swaps in a tree walk (5,000-file / 1 MiB caps, allowlist
+    support) and the check modules above. An <code>error</code> (timeout,
+    DNS down, OSV unreachable) never counts as a vulnerability.</p>
   </div>
 
   <h2>Run it</h2>
@@ -72,6 +113,18 @@ node dist/cli.js repo /path/to/your/repo    # repo score</code></pre>
 
   <h2>Roadmap</h2>
   <p>Git-history scanning, GitHub-URL input, web UI.</p>
+
+  <h2>About</h2>
+  <div class="card">
+    <p>Built by <a href="https://github.com/ApoorvRusia">Apoorv Rusia</a>, a
+    data engineering leader. Most websites don't get hacked through exotic
+    vulnerabilities — they fail on the basics: a missing HSTS header, a
+    loose CSP, an expired certificate, no DMARC record, a secret committed
+    to a repo. A full audit is slow and expensive overkill for a routine
+    check. SiteVitals covers the gap: a five-minute check you can run any
+    time, on any site or repo — before a launch, after a migration, or on
+    a schedule.</p>
+  </div>
 
   <footer>
     <p><a href="https://github.com/ApoorvRusia/sitevitals">github.com/ApoorvRusia/sitevitals</a> · MIT License</p>

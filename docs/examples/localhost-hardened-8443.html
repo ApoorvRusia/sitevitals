@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sec-check · localhost · 81/100</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #1f2937; }
+  .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+  .score-row { display: flex; align-items: center; gap: 1.5rem; }
+  .dial { width: 96px; height: 96px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; font-weight: 700; color: #fff; background: #84cc16; }
+  .meta { color: #6b7280; font-size: .85rem; }
+  h2 { font-size: 1.1rem; margin: 1.5rem 0 .5rem; }
+  .finding { border: 1px solid #e5e7eb; border-radius: 8px; padding: .75rem 1rem; margin-bottom: .5rem; }
+  .finding.pass { opacity: .85; }
+  .finding.fail { border-left: 4px solid #ef4444; }
+  .finding.error { border-left: 4px solid #9ca3af; }
+  .finding-head { margin-bottom: .25rem; }
+  .sev { font-size: .7rem; text-transform: uppercase; padding: .1rem .4rem; border-radius: 999px; color: #fff; }
+  .sev.high { background: #ef4444; } .sev.medium { background: #f59e0b; } .sev.low { background: #6b7280; }
+  .detail { font-size: .9rem; }
+  .fix { margin-top: .4rem; font-size: .85rem; background: #f9fafb; border-radius: 6px; padding: .5rem .75rem; }
+  .fix-label { font-weight: 600; color: #059669; }
+  code { font-family: ui-monospace, monospace; }
+  footer { margin-top: 2rem; font-size: .8rem; color: #9ca3af; }
+  details.passes summary { cursor: pointer; color: #6b7280; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="score-row">
+      <div class="dial">81</div>
+      <div>
+        <h1 style="margin:0">Grade B</h1>
+        <div class="meta">localhost · scanned 2026-11-25 18:19:46 UTC<br>
+        14 passed · 3 failed · 1 errors · passive checks only</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Findings (3)</h2>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>SPF record</strong> <span class="sev medium">medium</span></div>
+      <div class="detail">No SPF TXT record on the domain — anyone can spoof email from it.</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Publish TXT: v=spf1 include:&lt;your-mail-provider&gt; -all (replace with your actual sender set).</code></div>
+    </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>DMARC record</strong> <span class="sev medium">medium</span></div>
+      <div class="detail">No DMARC TXT record at _dmarc.localhost</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Publish TXT at _dmarc: v=DMARC1; p=quarantine; rua=mailto:dmarc@localhost</code></div>
+    </div>
+    <div class="finding fail">
+      <div class="finding-head">🔴 FAIL <strong>CAA record</strong> <span class="sev medium">medium</span></div>
+      <div class="detail">No CAA record on the domain — any CA can issue a certificate for it.</div>
+      <div class="fix"><span class="fix-label">Fix →</span> <code>Publish a CAA record naming your CA, e.g. TXT: 0 issue &quot;letsencrypt.org&quot; (and 0 issuewild for wildcard issuance).</code></div>
+    </div>
+  <h2>Could not run (1)</h2>
+    <div class="finding error">
+      <div class="finding-head">⚪ ERROR <strong>HTTP → HTTPS redirect</strong></div>
+      <div class="detail">Could not probe http:// (fetch failed).</div>
+      
+    </div>
+  <details class="passes"><summary>Passed checks (14)</summary>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>HSTS header</strong></div>
+      <div class="detail">HSTS set with max-age=31536000 and includeSubDomains.</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>HSTS preload eligibility</strong></div>
+      <div class="detail">Preload-eligible: max-age=31536000, includeSubDomains, preload directive present.</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>Content-Security-Policy</strong></div>
+      <div class="detail">CSP present (default-src &#39;self&#39;; frame-ancestors &#39;none&#39;).</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>Clickjacking protection</strong></div>
+      <div class="detail">X-Frame-Options: DENY.</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>MIME sniffing protection</strong></div>
+      <div class="detail">X-Content-Type-Options: nosniff.</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>Referrer-Policy</strong></div>
+      <div class="detail">Referrer-Policy: strict-origin-when-cross-origin.</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>Version disclosure</strong></div>
+      <div class="detail">No revealing Server/X-Powered-By headers.</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>Permissions-Policy</strong></div>
+      <div class="detail">Permissions-Policy present (camera=(), microphone=(), geolocation=()).</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>Cross-origin isolation</strong></div>
+      <div class="detail">COOP: same-origin. COEP present; CORP: same-origin.</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>security.txt</strong></div>
+      <div class="detail">security.txt served at /.well-known/security.txt (200).</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>Cookie flags</strong></div>
+      <div class="detail">All 1 cookie(s) carry Secure, HttpOnly and SameSite.</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>Certificate validity</strong></div>
+      <div class="detail">Valid certificate for localhost; expires in 335 days (Oct 26 18:44:33 2027 GMT).</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>Certificate expiry window</strong></div>
+      <div class="detail">Certificate for localhost expires in 335 days (Oct 26 18:44:33 2027 GMT) — outside the 30-day renewal window.</div>
+      
+    </div>
+    <div class="finding pass">
+      <div class="finding-head">🟢 PASS <strong>TLS version floor</strong></div>
+      <div class="detail">Negotiated TLSv1.3.</div>
+      
+    </div></details>
+
+  <footer>Generated by sec-check v1 (5-Minute Security Checker) — passive hygiene audit, no scans or payloads.</footer>
+</body>
+</html>
