@@ -426,6 +426,15 @@
         .hero-top { grid-template-columns: 1fr 150px; gap: 14px; }
         .hero-top .stage { min-height: 170px; }
       }
+
+      /* engine section: copy + 3D core side by side */
+      .engine-grid { display: grid; grid-template-columns: 1fr 280px; gap: 24px; align-items: center; }
+      .engine-viz { position: relative; height: 280px; }
+      .engine-viz canvas { width: 100%; height: 100%; display: block; }
+      @media (max-width: 900px) {
+        .engine-grid { grid-template-columns: 1fr 150px; gap: 14px; }
+        .engine-viz { height: 170px; }
+      }
 </style>
   </head>
   <body>
@@ -492,9 +501,16 @@
       <section id="engine">
         <div class="wrap">
           <div class="engine reveal">
-            <span class="sec-tag">The engine</span>
-            <h2>Built in-house.<br />Zero dependencies.</h2>
-            <p><strong>The checking engine is written from scratch in TypeScript on Node.js</strong> — no shell-outs to gitleaks, semgrep, or osv-scanner. Secret patterns are vendored as data (MIT Gitleaks defaults, attributed), and the only network call a repo scan makes is the OSV lookup. <strong>There is no supply chain to audit in the auditor.</strong></p>
+            <div class="engine-grid">
+              <div class="engine-copy">
+                <span class="sec-tag">The engine</span>
+                <h2>Built in-house.<br />Zero dependencies.</h2>
+                <p><strong>The checking engine is written from scratch in TypeScript on Node.js</strong> — no shell-outs to gitleaks, semgrep, or osv-scanner. Secret patterns are vendored as data (MIT Gitleaks defaults, attributed), and the only network call a repo scan makes is the OSV lookup. <strong>There is no supply chain to audit in the auditor.</strong></p>
+              </div>
+              <div class="engine-viz" role="img" aria-label="Rotating 3D engine core rendered in WebGL">
+                <canvas id="engineCanvas"></canvas>
+              </div>
+            </div>
             <div class="counters">
               <div class="counter"><b><span data-count="0">0</span></b><span>Runtime dependencies — Node built-ins only</span></div>
               <div class="counter"><b><span data-count="18">18</span></b><span>Passive URL checks per scan</span></div>
@@ -1347,5 +1363,87 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
       if (document.readyState === "complete") { setTimeout(bootGL, 40); }
       else { window.addEventListener("load", function () { setTimeout(bootGL, 40); }); }
     </script>
-  </body>
+  <script>
+      (function () {
+        var canvas = document.getElementById("engineCanvas");
+        if (!canvas || typeof THREE === "undefined") return;
+        var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var renderer;
+        try { renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true }); }
+        catch (e) { return; }
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+        camera.position.set(0, 0.6, 6.4);
+        camera.lookAt(0, 0, 0);
+        scene.add(new THREE.AmbientLight(0x88ccff, 0.8));
+        var key = new THREE.DirectionalLight(0xffffff, 1.4); key.position.set(3, 4, 5); scene.add(key);
+        var rim = new THREE.PointLight(0x22d3ee, 16, 20); rim.position.set(-3, 1.5, 2.5); scene.add(rim);
+
+        var group = new THREE.Group(); scene.add(group);
+        /* glowing core */
+        var core = new THREE.Mesh(
+          new THREE.SphereGeometry(0.55, 32, 32),
+          new THREE.MeshStandardMaterial({ color: 0x22d3ee, emissive: 0x22d3ee, emissiveIntensity: 1.5, metalness: 0.2, roughness: 0.35 })
+        );
+        group.add(core);
+        /* wireframe shell */
+        var shell = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(1.15, 1),
+          new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true, transparent: true, opacity: 0.4 })
+        );
+        group.add(shell);
+        /* gyroscope rings */
+        var rings = [];
+        [[1.55, 0x22d3ee, 0.6], [1.8, 0x38bdf8, 0.4], [2.05, 0x818cf8, 0.3]].forEach(function (cfg) {
+          var r = new THREE.Mesh(
+            new THREE.TorusGeometry(cfg[0], 0.016, 8, 128),
+            new THREE.MeshBasicMaterial({ color: cfg[1], transparent: true, opacity: cfg[2] })
+          );
+          rings.push(r); group.add(r);
+        });
+        /* particles */
+        var N = 160, pos = new Float32Array(N * 3);
+        for (var i = 0; i < N; i++) {
+          pos[i*3] = (Math.random() - 0.5) * 7;
+          pos[i*3+1] = (Math.random() - 0.5) * 5;
+          pos[i*3+2] = (Math.random() - 0.5) * 3 - 0.5;
+        }
+        var pGeo = new THREE.BufferGeometry();
+        pGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+        var particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0x67e8f9, size: 0.04, transparent: true, opacity: 0.7 }));
+        scene.add(particles);
+
+        function resize() {
+          var w = canvas.clientWidth, hgt = canvas.clientHeight;
+          if (!w || !hgt) return;
+          renderer.setSize(w, hgt, false);
+          camera.aspect = w / hgt; camera.updateProjectionMatrix();
+        }
+        resize(); window.addEventListener("resize", resize);
+
+        var inView = true;
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(function (es) { es.forEach(function (e) { inView = e.isIntersecting; }); }, { threshold: 0.05 }).observe(canvas);
+        }
+        var startT = performance.now();
+        function frame() {
+          requestAnimationFrame(frame);
+          if (!inView) return;
+          var t = (performance.now() - startT) / 1000;
+          var sp = reduced ? 0.15 : 1;
+          group.rotation.y = t * 0.45 * sp;
+          group.rotation.x = Math.sin(t * 0.4) * 0.18 * sp;
+          core.scale.setScalar(1 + Math.sin(t * 2) * 0.06 * sp);
+          shell.rotation.y = -t * 0.3 * sp; shell.rotation.x = t * 0.2 * sp;
+          rings[0].rotation.x = t * 0.7 * sp; rings[0].rotation.y = t * 0.3 * sp;
+          rings[1].rotation.y = t * 0.55 * sp; rings[1].rotation.z = t * 0.25 * sp;
+          rings[2].rotation.z = -t * 0.4 * sp; rings[2].rotation.x = t * 0.2 * sp;
+          particles.rotation.y = t * 0.03 * sp;
+          renderer.render(scene, camera);
+        }
+        frame();
+      })();
+    </script>
+</body>
 </html>
