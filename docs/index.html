@@ -1310,6 +1310,8 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
           if (!active || !inView) return;
           var t = (performance.now() - startT) / 1000;
           var speed = reduced ? 0.12 : 1;
+          /* Auto-rotate: shield turns on its own; pauses while dragging */
+          if (!dragging && !reduced) spin += 0.0045;
           mx += (tx - mx) * 0.05; my += (ty - my) * 0.05;
           heroGroup.rotation.y = -0.35 + spin + mx + (reduced ? 0 : Math.sin(t * 0.35) * 0.14);
           heroGroup.rotation.x = 0.12 + my + (reduced ? 0 : Math.sin(t * 0.5) * 0.05);
