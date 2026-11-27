@@ -1,51 +1,111 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SiteVitals — a 5-minute security report card for your website and repo</title>
 <meta name="description" content="Paste a URL, get a scored security report card with plain-English fixes. Point it at a local repo, get a separate repo score for secrets, vulnerable dependencies, and injection risks.">
 <style>
-  :root { color-scheme: light; }
+  :root {
+    --bg: #0b0f1a; --bg2: #111827; --card: rgba(255,255,255,.05); --card-border: rgba(255,255,255,.12);
+    --text: #eef2ff; --muted: #a5b4cf; --accent: #38bdf8; --accent2: #818cf8; --good: #34d399; --bad: #f87171;
+    --code-bg: rgba(255,255,255,.08); --th-bg: rgba(255,255,255,.07);
+  }
+  html[data-theme="light"] {
+    --bg: #f6f8fc; --bg2: #eef2f9; --card: #ffffff; --card-border: #dbe3f0;
+    --text: #16213a; --muted: #4b5a75; --accent: #0369a1; --accent2: #4f46e5; --good: #047857; --bad: #b91c1c;
+    --code-bg: #eef2f9; --th-bg: #eef2f9;
+  }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-         margin: 0; line-height: 1.6; color: #1a1a1a; background: #fafafa; }
-  main { max-width: 780px; margin: 0 auto; padding: 48px 24px 64px; }
-  h1 { font-size: 2.2rem; margin: 0 0 8px; }
-  .tagline { font-size: 1.15rem; opacity: .85; margin: 0 0 28px; }
-  h2 { margin-top: 36px; }
-  .card { background: #fff; border: 1px solid #e2e2e2; border-radius: 12px; padding: 20px 24px; margin: 16px 0; }
-  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: .92em; }
-  pre { overflow-x: auto; }
-  pre code { display: block; padding: 14px; }
+         margin: 0; line-height: 1.65; color: var(--text);
+         background: radial-gradient(1100px 500px at 80% -10%, rgba(56,189,248,.18), transparent 60%),
+                     radial-gradient(900px 450px at -10% 10%, rgba(129,140,248,.16), transparent 60%),
+                     linear-gradient(180deg, var(--bg), var(--bg2)); background-attachment: fixed; }
+  main { max-width: 820px; margin: 0 auto; padding: 40px 24px 72px; }
+  header.top { display: flex; justify-content: space-between; align-items: center; max-width: 820px; margin: 0 auto; padding: 18px 24px 0; }
+  .brand { font-weight: 800; letter-spacing: .02em; font-size: 1.05rem; }
+  .brand span { color: var(--accent); }
+  #themeToggle { background: var(--card); color: var(--text); border: 1px solid var(--card-border);
+                 border-radius: 999px; padding: 6px 14px; cursor: pointer; font-size: .85rem; }
+  #themeToggle:hover { border-color: var(--accent); }
+  .hero { text-align: center; padding: 28px 0 8px; }
+  h1 { font-size: 2.9rem; margin: 0 0 6px; letter-spacing: -.01em;
+       background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .tagline { font-size: 1.2rem; color: var(--muted); margin: 0 auto 10px; max-width: 560px; }
+  .dialwrap { display: flex; justify-content: center; margin: 18px 0 4px; }
+  .dial { position: relative; width: 168px; height: 168px; }
+  .dial svg { transform: rotate(-90deg); }
+  .dial .ring-bg { stroke: var(--card-border); }
+  .dial .ring-fg { stroke: url(#grad); stroke-linecap: round; transition: stroke-dashoffset 1.6s ease; }
+  .dial .num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .dial .num b { font-size: 2.4rem; line-height: 1; }
+  .dial .num small { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; }
+  h2 { margin-top: 40px; font-size: 1.45rem; }
+  h2.big { font-size: 1.7rem; text-transform: uppercase; letter-spacing: .02em; }
+  .card { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px;
+          padding: 22px 26px; margin: 16px 0; backdrop-filter: blur(6px);
+          box-shadow: 0 8px 30px rgba(0,0,0,.18); }
+  code { background: var(--code-bg); padding: 2px 6px; border-radius: 5px; font-size: .9em; }
+  pre { overflow-x: auto; background: var(--code-bg); border-radius: 12px; }
+  pre code { display: block; padding: 16px; background: none; }
   .scores { display: flex; gap: 16px; flex-wrap: wrap; }
-  .score { flex: 1 1 200px; text-align: center; }
-  .score b { font-size: 1.8rem; display: block; }
-  .tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .score { flex: 1 1 200px; text-align: center; transition: transform .25s ease, border-color .25s ease; }
+  .score b { font-size: 1.9rem; display: block; }
+  .score .g-good { color: var(--good); } .score .g-bad { color: var(--bad); } .score .g-mid { color: var(--accent); }
+  @media (hover: hover) { .score:hover { transform: translateY(-5px) rotateX(4deg); border-color: var(--accent); } }
+  .tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
   table { border-collapse: collapse; width: 100%; font-size: .95rem; }
-  @media (max-width: 600px) { table { font-size: .82rem; } th, td { padding: 4px 6px; } main { padding: 28px 14px 48px; } h1 { font-size: 1.7rem; } }
-  th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; }
-  th { background: #f4f4f4; }
+  th, td { border: 1px solid var(--card-border); padding: 7px 10px; text-align: left; }
+  th { background: var(--th-bg); }
   .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-  .flow .step { background: #eef4ff; border: 1px solid #c9dcff; border-radius: 8px; padding: 8px 12px; font-size: .95rem; }
-  .flow .arrow { opacity: .6; }
-  a { color: #0b5ed7; }
-  footer { margin-top: 48px; font-size: .9rem; opacity: .75; }
+  .flow .step { background: var(--code-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 8px 12px; font-size: .95rem; }
+  .flow .arrow { color: var(--accent); font-weight: 700; }
+  a { color: var(--accent); }
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } .dial .ring-fg { transition: none; } }
+  footer { margin-top: 52px; font-size: .9rem; color: var(--muted); text-align: center; }
+  @media (max-width: 600px) {
+    main { padding: 24px 14px 56px; } h1 { font-size: 2.1rem; }
+    table { font-size: .82rem; } th, td { padding: 4px 6px; } .card { padding: 18px; }
+  }
 </style>
 </head>
 <body>
+<header class="top">
+  <div class="brand">Site<span>Vitals</span></div>
+  <button id="themeToggle" type="button">☀ Light</button>
+</header>
 <main>
-  <h1>SiteVitals</h1>
-  <p class="tagline">A 5-minute security report card for your website and repo.</p>
+  <div class="hero">
+    <h1>SiteVitals</h1>
+    <p class="tagline">A 5-minute security report card for your website and repo.</p>
+    <div class="dialwrap">
+      <div class="dial" aria-label="Example score 81 out of 100">
+        <svg width="168" height="168" viewBox="0 0 168 168">
+          <defs><linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#818cf8"/>
+          </linearGradient></defs>
+          <circle class="ring-bg" cx="84" cy="84" r="74" fill="none" stroke-width="12"/>
+          <circle class="ring-fg" id="ringFg" cx="84" cy="84" r="74" fill="none" stroke-width="12"
+                  stroke-dasharray="465" stroke-dashoffset="465"/>
+        </svg>
+        <div class="num"><b id="dialNum">0</b><small>/ 100 · Grade B</small></div>
+      </div>
+    </div>
+    <p style="color:var(--muted); font-size:.9rem;">Hardened test site — <a href="examples/localhost-hardened-8443.html">see the real report</a></p>
+  </div>
 
-  <p>Paste a URL, get a scored report card with prioritized, copy-paste fixes.
+  <p class="reveal">Paste a URL, get a scored report card with prioritized, copy-paste fixes.
   Point it at a local repo, get a separate repo score: leaked secrets,
   vulnerable dependencies, and injection-pattern risks — no shell-outs, no
   live verification of secrets, and only package names + versions ever
   leave your machine (for the OSV lookup).</p>
 
-  <h2>What is SiteVitals?</h2>
-  <div class="card">
+  <h2 class="reveal">What is SiteVitals?</h2>
+  <div class="card reveal">
     <p>SiteVitals is a fast, passive hygiene audit for any website and any
     code repository. Most sites don't get hacked through exotic
     vulnerabilities — they fail on the basics: a missing HSTS header, a
@@ -73,8 +133,8 @@
     asking it the same questions a browser would.</p>
   </div>
 
-  <h2 style="font-size:1.6rem; text-transform:uppercase; letter-spacing:.02em;">Built in-house, zero dependencies</h2>
-  <div class="card">
+  <h2 class="big reveal">Built in-house, zero dependencies</h2>
+  <div class="card reveal">
     <p><strong>The checking engine is written from scratch in TypeScript
     on Node.js — no shell-outs to gitleaks, semgrep, or osv-scanner, and
     zero runtime dependencies.</strong> Rule patterns are vendored as data
@@ -83,14 +143,14 @@
     auditor.</strong></p>
   </div>
 
-  <div class="scores">
-    <div class="card score"><b>81 / 100 · B</b>hardened test site<br><a href="examples/localhost-hardened-8443.html">See the report</a></div>
-    <div class="card score"><b>15 / 100 · F</b>bare test site<br><a href="examples/localhost-bare-8080.html">See the report</a></div>
-    <div class="card score"><b>100 / 100 · A</b>clean repo fixture</div>
+  <div class="scores reveal">
+    <div class="card score"><b class="g-mid">81 / 100 · B</b>hardened test site<br><a href="examples/localhost-hardened-8443.html">See the report</a></div>
+    <div class="card score"><b class="g-bad">15 / 100 · F</b>bare test site<br><a href="examples/localhost-bare-8080.html">See the report</a></div>
+    <div class="card score"><b class="g-good">100 / 100 · A</b>clean repo fixture</div>
   </div>
 
-  <h2>Sample reports</h2>
-  <div class="card">
+  <h2 class="reveal">Sample reports</h2>
+  <div class="card reveal">
     <p>Real output from the test harness — open them in your browser:</p>
     <ul>
       <li><a href="examples/localhost-hardened-8443.html">Hardened site — 81/100 (Grade B)</a>: 14 passed, 3 failed (SPF/DMARC/CAA, honestly absent on localhost).</li>
@@ -98,8 +158,8 @@
     </ul>
   </div>
 
-  <h2>What it checks</h2>
-  <div class="card">
+  <h2 class="reveal">What it checks</h2>
+  <div class="card reveal">
     <p><strong>URL mode</strong> — 18 passive checks, score = 100 minus failed weights:</p>
     <div class="tablewrap"><table>
       <tr><th>Check</th><th>Weight</th><th>Check</th><th>Weight</th></tr>
@@ -127,8 +187,8 @@
     the scanned repo.</p>
   </div>
 
-  <h2>How it works</h2>
-  <div class="card">
+  <h2 class="reveal">How it works</h2>
+  <div class="card reveal">
     <div class="flow">
       <span class="step">CLI: URL or repo path</span><span class="arrow">→</span>
       <span class="step">Normalize + parallel checks (20s timeouts)</span><span class="arrow">→</span>
@@ -140,15 +200,15 @@
     DNS down, OSV unreachable) never counts as a vulnerability.</p>
   </div>
 
-  <h2>Run it</h2>
-  <pre><code>git clone https://github.com/ApoorvRusia/sitevitals.git
+  <h2 class="reveal">Run it</h2>
+  <pre class="reveal"><code>git clone https://github.com/ApoorvRusia/sitevitals.git
 cd sitevitals
 npm install &amp;&amp; npm run build
 node dist/cli.js https://example.com        # URL report card
 node dist/cli.js repo /path/to/your/repo    # repo score</code></pre>
 
-  <h2>For agents</h2>
-  <div class="card">
+  <h2 class="reveal">For agents</h2>
+  <div class="card reveal">
     <p>SiteVitals is agent-first. Give this repo's URL to an AI agent —
     Claude, Copilot, Muse, Grok — and it can take it from there: install,
     run audits on your websites and projects, and report back with scores
@@ -162,13 +222,13 @@ node dist/cli.js repo /path/to/your/repo    # repo score</code></pre>
     </ul>
   </div>
 
-  <h2>Limits</h2>
-  <p>SiteVitals is a hygiene check, not a penetration test. It will not find
+  <h2 class="reveal">Limits</h2>
+  <p class="reveal">SiteVitals is a hygiene check, not a penetration test. It will not find
   application vulnerabilities. It makes sure the front door is locked, the
   windows are latched, and the alarm is on.</p>
 
-  <h2>Roadmap</h2>
-  <div class="card">
+  <h2 class="reveal">Roadmap</h2>
+  <div class="card reveal">
     <p><strong>Shipped</strong></p>
     <ul>
       <li>✅ URL checker — HTTPS, headers, cookies, TLS, DNS, scored /100</li>
@@ -188,8 +248,8 @@ node dist/cli.js repo /path/to/your/repo    # repo score</code></pre>
     </ul>
   </div>
 
-  <h2>About</h2>
-  <div class="card">
+  <h2 class="reveal">About</h2>
+  <div class="card reveal">
     <p>Built by <a href="https://github.com/ApoorvRusia">Apoorv Rusia</a>, a
     data engineering leader. Most websites don't get hacked through exotic
     vulnerabilities — they fail on the basics: a missing HSTS header, a
@@ -204,5 +264,38 @@ node dist/cli.js repo /path/to/your/repo    # repo score</code></pre>
     <p><a href="https://github.com/ApoorvRusia/sitevitals">github.com/ApoorvRusia/sitevitals</a> · MIT License</p>
   </footer>
 </main>
+<script>
+  // Theme toggle (dark default; remembers nothing — static page, no storage needed)
+  var btn = document.getElementById('themeToggle');
+  btn.addEventListener('click', function () {
+    var html = document.documentElement;
+    var dark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', dark ? 'light' : 'dark');
+    btn.textContent = dark ? '🌙 Dark' : '☀ Light';
+  });
+  // Animated score dial: counts to 81, ring fills to match
+  (function () {
+    var target = 81, num = document.getElementById('dialNum'), ring = document.getElementById('ringFg');
+    var circ = 465, start = null;
+    function step(ts) {
+      if (!start) start = ts;
+      var p = Math.min((ts - start) / 1600, 1);
+      var v = Math.round(target * p);
+      num.textContent = v;
+      ring.style.strokeDashoffset = circ - (circ * target / 100) * p;
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  })();
+  // Scroll reveal
+  (function () {
+    var els = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('in'); }); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+    }, { threshold: 0.12 });
+    els.forEach(function (e) { io.observe(e); });
+  })();
+</script>
 </body>
 </html>
