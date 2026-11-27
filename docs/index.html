@@ -44,6 +44,35 @@
   live verification of secrets, and only package names + versions ever
   leave your machine (for the OSV lookup).</p>
 
+  <h2>What is SiteVitals?</h2>
+  <div class="card">
+    <p>SiteVitals is a fast, passive hygiene audit for any website and any
+    code repository. Most sites don't get hacked through exotic
+    vulnerabilities — they fail on the basics: a missing HSTS header, a
+    loose Content-Security-Policy, an expired certificate, no DMARC
+    record, an API key committed to GitHub. Those misconfigurations are
+    cheap to fix but invisible until someone looks, and a full security
+    audit is slow, expensive overkill for a routine check.</p>
+    <p>SiteVitals covers that gap. Give it a URL and it checks the security
+    basics — HTTPS redirect, security headers, cookie flags, TLS
+    certificate and version, DNS records — then scores the site out of 100
+    with a grade and a plain-English fix for every failure. Point it at a
+    local repo and it audits the working tree for leaked secrets,
+    vulnerable dependencies, and injection-pattern risks, with its own
+    separate 100-point repo score. Reports are self-contained HTML files:
+    emailable, open offline, no dashboard needed.</p>
+    <p><strong>Who it's for:</strong> site owners checking a launch or a
+    migration, developers who want a pre-commit sanity check, and agents
+    or CI pipelines that need a machine-readable score — the
+    <code>--json</code> mode exists because the next consumer of a
+    security report is just as likely to be an agent as a human.</p>
+    <p><strong>What makes it different:</strong> one command, no setup; a
+    score you can track over time, so "is the site healthier?" is
+    answerable; fixes, not just findings; and every check is a passive
+    read — no scans, no payloads, nothing that touches the target beyond
+    asking it the same questions a browser would.</p>
+  </div>
+
   <div class="scores">
     <div class="card score"><b>81 / 100 · B</b>hardened test site<br><a href="examples/localhost-hardened-8443.html">See the report</a></div>
     <div class="card score"><b>15 / 100 · F</b>bare test site<br><a href="examples/localhost-bare-8080.html">See the report</a></div>
