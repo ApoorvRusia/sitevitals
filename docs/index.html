@@ -82,20 +82,10 @@
   <div class="hero">
     <h1>SiteVitals</h1>
     <p class="tagline">A 5-minute security report card for your website and repo.</p>
-    <div class="dialwrap">
-      <div class="dial" aria-label="Example score 81 out of 100">
-        <svg width="168" height="168" viewBox="0 0 168 168">
-          <defs><linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#818cf8"/>
-          </linearGradient></defs>
-          <circle class="ring-bg" cx="84" cy="84" r="74" fill="none" stroke-width="12"/>
-          <circle class="ring-fg" id="ringFg" cx="84" cy="84" r="74" fill="none" stroke-width="12"
-                  stroke-dasharray="465" stroke-dashoffset="465"/>
-        </svg>
-        <div class="num"><b id="dialNum">0</b><small>/ 100 · Grade B</small></div>
-      </div>
+    <div id="shieldWrap" style="position:relative; height:340px; max-width:560px; margin:6px auto 0; cursor:grab; touch-action:pan-y;" aria-label="3D shield — drag to rotate">
+      <canvas id="shieldCanvas" style="width:100%; height:100%; display:block;"></canvas>
     </div>
-    <p style="color:var(--muted); font-size:.9rem;">Hardened test site — <a href="examples/localhost-hardened-8443.html">see the real report</a></p>
+    <p style="color:var(--muted); font-size:.85rem; margin-top:2px;">Drag to rotate · Hardened test site scored <strong style="color:var(--accent)">81/100 · B</strong> — <a href="examples/localhost-hardened-8443.html">see the real report</a></p>
   </div>
 
   <p class="reveal">Paste a URL, get a scored report card with prioritized, copy-paste fixes.
@@ -273,20 +263,7 @@ node dist/cli.js repo /path/to/your/repo    # repo score</code></pre>
     html.setAttribute('data-theme', dark ? 'light' : 'dark');
     btn.textContent = dark ? '🌙 Dark' : '☀ Light';
   });
-  // Animated score dial: counts to 81, ring fills to match
-  (function () {
-    var target = 81, num = document.getElementById('dialNum'), ring = document.getElementById('ringFg');
-    var circ = 465, start = null;
-    function step(ts) {
-      if (!start) start = ts;
-      var p = Math.min((ts - start) / 1600, 1);
-      var v = Math.round(target * p);
-      num.textContent = v;
-      ring.style.strokeDashoffset = circ - (circ * target / 100) * p;
-      if (p < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-  })();
+
   // Scroll reveal
   (function () {
     var els = document.querySelectorAll('.reveal');
@@ -296,6 +273,99 @@ node dist/cli.js repo /path/to/your/repo    # repo score</code></pre>
     }, { threshold: 0.12 });
     els.forEach(function (e) { io.observe(e); });
   })();
+</script>
+<script type="module">
+  import * as THREE from './vendor/three.module.min.js';
+  const wrap = document.getElementById('shieldWrap');
+  const canvas = document.getElementById('shieldCanvas');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+  camera.position.set(0, 0.4, 7.2);
+
+  scene.add(new THREE.AmbientLight(0x88ccff, 0.7));
+  const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(3, 4, 5); scene.add(key);
+  const rim = new THREE.PointLight(0x22d3ee, 18, 20); rim.position.set(-3.5, 1.5, 2.5); scene.add(rim);
+
+  const group = new THREE.Group(); scene.add(group);
+
+  // Shield outline (extruded)
+  const s = new THREE.Shape();
+  s.moveTo(0, 1.55);
+  s.bezierCurveTo(0.55, 1.35, 1.05, 1.25, 1.45, 1.25);
+  s.bezierCurveTo(1.45, 0.35, 1.25, -0.75, 0, -1.7);
+  s.bezierCurveTo(-1.25, -0.75, -1.45, 0.35, -1.45, 1.25);
+  s.bezierCurveTo(-1.05, 1.25, -0.55, 1.35, 0, 1.55);
+  const shieldGeo = new THREE.ExtrudeGeometry(s, { depth: 0.28, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.05, bevelSegments: 3, curveSegments: 32 });
+  shieldGeo.center();
+  const shield = new THREE.Mesh(shieldGeo, new THREE.MeshStandardMaterial({ color: 0x0e2a3d, metalness: 0.85, roughness: 0.28, emissive: 0x06222e }));
+  group.add(shield);
+
+  // Glowing check mark (two bars)
+  const checkMat = new THREE.MeshStandardMaterial({ color: 0x22d3ee, emissive: 0x22d3ee, emissiveIntensity: 1.6, metalness: 0.2, roughness: 0.4 });
+  const bar1 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.62, 0.1), checkMat);
+  bar1.position.set(-0.28, -0.08, 0.24); bar1.rotation.z = 0.7; group.add(bar1);
+  const bar2 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.05, 0.1), checkMat);
+  bar2.position.set(0.18, 0.12, 0.24); bar2.rotation.z = -0.62; group.add(bar2);
+
+  // Orbiting rings + nodes
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.55 });
+  const ring1 = new THREE.Mesh(new THREE.TorusGeometry(2.15, 0.012, 8, 128), ringMat);
+  ring1.rotation.x = Math.PI / 2.4; group.add(ring1);
+  const ring2 = new THREE.Mesh(new THREE.TorusGeometry(2.5, 0.01, 8, 128), new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.35 }));
+  ring2.rotation.x = Math.PI / 1.8; ring2.rotation.y = 0.5; group.add(ring2);
+  const nodes = [];
+  for (let i = 0; i < 6; i++) {
+    const n = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 12), new THREE.MeshBasicMaterial({ color: 0x67e8f9 }));
+    nodes.push(n); group.add(n);
+  }
+
+  // Scanning sweep (thin glowing plane moving down)
+  const sweep = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 0.05), new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.8, side: THREE.DoubleSide }));
+  sweep.position.z = 0.35; group.add(sweep);
+
+  // Particle field
+  const pGeo = new THREE.BufferGeometry();
+  const N = 260, pos = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) { pos[i*3] = (Math.random()-0.5)*9; pos[i*3+1] = (Math.random()-0.5)*5.5; pos[i*3+2] = (Math.random()-0.5)*4 - 1; }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0x67e8f9, size: 0.035, transparent: true, opacity: 0.7 }));
+  scene.add(particles);
+
+  function resize() {
+    const w = wrap.clientWidth, hgt = wrap.clientHeight;
+    renderer.setSize(w, hgt, false);
+    camera.aspect = w / hgt; camera.updateProjectionMatrix();
+  }
+  resize(); window.addEventListener('resize', resize);
+
+  // Drag to orbit + pointer parallax
+  let targetRX = 0.08, targetRY = 0, dragging = false, px = 0, py = 0;
+  wrap.addEventListener('pointerdown', e => { dragging = true; px = e.clientX; py = e.clientY; wrap.setPointerCapture(e.pointerId); wrap.style.cursor = 'grabbing'; });
+  wrap.addEventListener('pointermove', e => {
+    if (dragging) { targetRY += (e.clientX - px) * 0.008; targetRX += (e.clientY - py) * 0.005; targetRX = Math.max(-0.6, Math.min(0.6, targetRX)); px = e.clientX; py = e.clientY; }
+  });
+  wrap.addEventListener('pointerup', () => { dragging = false; wrap.style.cursor = 'grab'; });
+
+  const clock = new THREE.Clock();
+  function tick() {
+    const t = clock.getElapsedTime();
+    if (!reduced) {
+      group.rotation.y += (targetRY - group.rotation.y) * 0.06 + 0.0022;
+      group.rotation.x += (targetRX - group.rotation.x) * 0.06;
+      group.position.y = Math.sin(t * 1.1) * 0.07;
+      ring1.rotation.z = t * 0.25; ring2.rotation.z = -t * 0.18;
+      nodes.forEach((n, i) => { const a = t * 0.5 + i * (Math.PI * 2 / 6); n.position.set(Math.cos(a) * 2.15, Math.sin(a) * 0.85, Math.sin(a) * 1.1); });
+      sweep.position.y = 1.7 - ((t * 0.55) % 3.4);
+      sweep.material.opacity = 0.35 + 0.45 * Math.abs(Math.sin(t * 1.4));
+      particles.rotation.y = t * 0.02;
+    }
+    renderer.render(scene, camera);
+    requestAnimationFrame(tick);
+  }
+  tick();
 </script>
 </body>
 </html>

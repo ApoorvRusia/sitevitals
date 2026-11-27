@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SiteVitals — a 5-minute security report card for your website and repo</title>
+<meta name="description" content="Paste a URL, get a scored security report card with plain-English fixes. Point it at a local repo, get a separate repo score for secrets, vulnerable dependencies, and injection risks.">
+<style>
+  :root {
+    --bg: #0b0f1a; --bg2: #111827; --card: rgba(255,255,255,.05); --card-border: rgba(255,255,255,.12);
+    --text: #eef2ff; --muted: #a5b4cf; --accent: #38bdf8; --accent2: #818cf8; --good: #34d399; --bad: #f87171;
+    --code-bg: rgba(255,255,255,.08); --th-bg: rgba(255,255,255,.07);
+  }
+  html[data-theme="light"] {
+    --bg: #f6f8fc; --bg2: #eef2f9; --card: #ffffff; --card-border: #dbe3f0;
+    --text: #16213a; --muted: #4b5a75; --accent: #0369a1; --accent2: #4f46e5; --good: #047857; --bad: #b91c1c;
+    --code-bg: #eef2f9; --th-bg: #eef2f9;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+         margin: 0; line-height: 1.65; color: var(--text);
+         background: radial-gradient(1100px 500px at 80% -10%, rgba(56,189,248,.18), transparent 60%),
+                     radial-gradient(900px 450px at -10% 10%, rgba(129,140,248,.16), transparent 60%),
+                     linear-gradient(180deg, var(--bg), var(--bg2)); background-attachment: fixed; }
+  main { max-width: 820px; margin: 0 auto; padding: 40px 24px 72px; }
+  header.top { display: flex; justify-content: space-between; align-items: center; max-width: 820px; margin: 0 auto; padding: 18px 24px 0; }
+  .brand { font-weight: 800; letter-spacing: .02em; font-size: 1.05rem; }
+  .brand span { color: var(--accent); }
+  #themeToggle { background: var(--card); color: var(--text); border: 1px solid var(--card-border);
+                 border-radius: 999px; padding: 6px 14px; cursor: pointer; font-size: .85rem; }
+  #themeToggle:hover { border-color: var(--accent); }
+  .hero { text-align: center; padding: 28px 0 8px; }
+  h1 { font-size: 2.9rem; margin: 0 0 6px; letter-spacing: -.01em;
+       background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .tagline { font-size: 1.2rem; color: var(--muted); margin: 0 auto 10px; max-width: 560px; }
+  .dialwrap { display: flex; justify-content: center; margin: 18px 0 4px; }
+  .dial { position: relative; width: 168px; height: 168px; }
+  .dial svg { transform: rotate(-90deg); }
+  .dial .ring-bg { stroke: var(--card-border); }
+  .dial .ring-fg { stroke: url(#grad); stroke-linecap: round; transition: stroke-dashoffset 1.6s ease; }
+  .dial .num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .dial .num b { font-size: 2.4rem; line-height: 1; }
+  .dial .num small { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; }
+  h2 { margin-top: 40px; font-size: 1.45rem; }
+  h2.big { font-size: 1.7rem; text-transform: uppercase; letter-spacing: .02em; }
+  .card { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px;
+          padding: 22px 26px; margin: 16px 0; backdrop-filter: blur(6px);
+          box-shadow: 0 8px 30px rgba(0,0,0,.18); }
+  code { background: var(--code-bg); padding: 2px 6px; border-radius: 5px; font-size: .9em; }
+  pre { overflow-x: auto; background: var(--code-bg); border-radius: 12px; }
+  pre code { display: block; padding: 16px; background: none; }
+  .scores { display: flex; gap: 16px; flex-wrap: wrap; }
+  .score { flex: 1 1 200px; text-align: center; transition: transform .25s ease, border-color .25s ease; }
+  .score b { font-size: 1.9rem; display: block; }
+  .score .g-good { color: var(--good); } .score .g-bad { color: var(--bad); } .score .g-mid { color: var(--accent); }
+  @media (hover: hover) { .score:hover { transform: translateY(-5px) rotateX(4deg); border-color: var(--accent); } }
+  .tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+  th, td { border: 1px solid var(--card-border); padding: 7px 10px; text-align: left; }
+  th { background: var(--th-bg); }
+  .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .flow .step { background: var(--code-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 8px 12px; font-size: .95rem; }
+  .flow .arrow { color: var(--accent); font-weight: 700; }
+  a { color: var(--accent); }
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } .dial .ring-fg { transition: none; } }
+  footer { margin-top: 52px; font-size: .9rem; color: var(--muted); text-align: center; }
+  @media (max-width: 600px) {
+    main { padding: 24px 14px 56px; } h1 { font-size: 2.1rem; }
+    table { font-size: .82rem; } th, td { padding: 4px 6px; } .card { padding: 18px; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">Site<span>Vitals</span></div>
+  <button id="themeToggle" type="button">☀ Light</button>
+</header>
+<main>
+  <div class="hero">
+    <h1>SiteVitals</h1>
+    <p class="tagline">A 5-minute security report card for your website and repo.</p>
+    <div class="dialwrap">
+      <div class="dial" aria-label="Example score 81 out of 100">
+        <svg width="168" height="168" viewBox="0 0 168 168">
+          <defs><linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#818cf8"/>
+          </linearGradient></defs>
+          <circle class="ring-bg" cx="84" cy="84" r="74" fill="none" stroke-width="12"/>
+          <circle class="ring-fg" id="ringFg" cx="84" cy="84" r="74" fill="none" stroke-width="12"
+                  stroke-dasharray="465" stroke-dashoffset="465"/>
+        </svg>
+        <div class="num"><b id="dialNum">0</b><small>/ 100 · Grade B</small></div>
+      </div>
+    </div>
+    <p style="color:var(--muted); font-size:.9rem;">Hardened test site — <a href="examples/localhost-hardened-8443.html">see the real report</a></p>
+  </div>
+
+  <p class="reveal">Paste a URL, get a scored report card with prioritized, copy-paste fixes.
+  Point it at a local repo, get a separate repo score: leaked secrets,
+  vulnerable dependencies, and injection-pattern risks — no shell-outs, no
+  live verification of secrets, and only package names + versions ever
+  leave your machine (for the OSV lookup).</p>
+
+  <h2 class="reveal">What is SiteVitals?</h2>
+  <div class="card reveal">
+    <p>SiteVitals is a fast, passive hygiene audit for any website and any
+    code repository. Most sites don't get hacked through exotic
+    vulnerabilities — they fail on the basics: a missing HSTS header, a
+    loose Content-Security-Policy, an expired certificate, no DMARC
+    record, an API key committed to GitHub. Those misconfigurations are
+    cheap to fix but invisible until someone looks, and a full security
+    audit is slow, expensive overkill for a routine check.</p>
+    <p>SiteVitals covers that gap. Give it a URL and it checks the security
+    basics — HTTPS redirect, security headers, cookie flags, TLS
+    certificate and version, DNS records — then scores the site out of 100
+    with a grade and a plain-English fix for every failure. Point it at a
+    local repo and it audits the working tree for leaked secrets,
+    vulnerable dependencies, and injection-pattern risks, with its own
+    separate 100-point repo score. Reports are self-contained HTML files:
+    emailable, open offline, no dashboard needed.</p>
+    <p><strong>Who it's for:</strong> site owners checking a launch or a
+    migration, developers who want a pre-commit sanity check, and agents
+    or CI pipelines that need a machine-readable score — the
+    <code>--json</code> mode exists because the next consumer of a
+    security report is just as likely to be an agent as a human.</p>
+    <p><strong>What makes it different:</strong> one command, no setup; a
+    score you can track over time, so "is the site healthier?" is
+    answerable; fixes, not just findings; and every check is a passive
+    read — no scans, no payloads, nothing that touches the target beyond
+    asking it the same questions a browser would.</p>
+  </div>
+
+  <h2 class="big reveal">Built in-house, zero dependencies</h2>
+  <div class="card reveal">
+    <p><strong>The checking engine is written from scratch in TypeScript
+    on Node.js — no shell-outs to gitleaks, semgrep, or osv-scanner, and
+    zero runtime dependencies.</strong> Rule patterns are vendored as data
+    (MIT Gitleaks defaults, attributed); the only network call is the OSV
+    lookup. <strong>There is no supply chain to audit in the
+    auditor.</strong></p>
+  </div>
+
+  <div class="scores reveal">
+    <div class="card score"><b class="g-mid">81 / 100 · B</b>hardened test site<br><a href="examples/localhost-hardened-8443.html">See the report</a></div>
+    <div class="card score"><b class="g-bad">15 / 100 · F</b>bare test site<br><a href="examples/localhost-bare-8080.html">See the report</a></div>
+    <div class="card score"><b class="g-good">100 / 100 · A</b>clean repo fixture</div>
+  </div>
+
+  <h2 class="reveal">Sample reports</h2>
+  <div class="card reveal">
+    <p>Real output from the test harness — open them in your browser:</p>
+    <ul>
+      <li><a href="examples/localhost-hardened-8443.html">Hardened site — 81/100 (Grade B)</a>: 14 passed, 3 failed (SPF/DMARC/CAA, honestly absent on localhost).</li>
+      <li><a href="examples/localhost-bare-8080.html">Bare site — 15/100 (Grade F)</a>: 14 failed, every finding with a plain-English fix.</li>
+    </ul>
+  </div>
+
+  <h2 class="reveal">What it checks</h2>
+  <div class="card reveal">
+    <p><strong>URL mode</strong> — 18 passive checks, score = 100 minus failed weights:</p>
+    <div class="tablewrap"><table>
+      <tr><th>Check</th><th>Weight</th><th>Check</th><th>Weight</th></tr>
+      <tr><td>HTTP → HTTPS redirect</td><td>10</td><td>Cookie flags (Secure/HttpOnly/SameSite)</td><td>6</td></tr>
+      <tr><td>Strict-Transport-Security</td><td>12</td><td>Permissions-Policy</td><td>3</td></tr>
+      <tr><td>HSTS preload eligibility</td><td>3</td><td>Isolation headers (COOP)</td><td>5</td></tr>
+      <tr><td>Content-Security-Policy</td><td>12</td><td>security.txt</td><td>3</td></tr>
+      <tr><td>Clickjacking protection</td><td>8</td><td>Certificate validity + expiry</td><td>12</td></tr>
+      <tr><td>X-Content-Type-Options</td><td>5</td><td>TLS 1.2+ floor</td><td>8</td></tr>
+      <tr><td>Referrer-Policy</td><td>3</td><td>Cert expires within 30 days</td><td>8</td></tr>
+      <tr><td>Version disclosure</td><td>6</td><td>SPF / DMARC / CAA DNS records</td><td>7 / 7 / 5</td></tr>
+    </table></div>
+    <p><strong>Repo mode</strong> (<code>sitevitals repo &lt;path&gt;</code>) — its own 100-point score:</p>
+    <ul>
+      <li><strong>Secrets</strong> — vendored MIT Gitleaks rule patterns, redacted previews only, never verified live</li>
+      <li><strong>Dependencies</strong> — OSV.dev lookups for npm, PyPI, and Go manifests; fix guidance picks the highest fixed version</li>
+      <li><strong>Injection patterns</strong> — JS/TS regex checks (dynamic code execution, shell-from-input, SQL string building, unsanitized HTML)</li>
+      <li><strong>Dockerfile</strong> — root user, secrets in ENV/ARG, unpinned base image</li>
+      <li><strong>License audit</strong> — copyleft and unknown licenses in the npm tree</li>
+      <li><strong>CI config</strong> — unpinned actions, write-all permissions in GitHub workflows</li>
+      <li><strong>SBOM</strong> — <code>--sbom</code> emits a CycloneDX 1.5 inventory of the same manifests</li>
+    </ul>
+    <p>Output: a human report card (self-contained HTML) plus
+    <code>--json</code> for agents and CI. Report-only — it never changes
+    the scanned repo.</p>
+  </div>
+
+  <h2 class="reveal">How it works</h2>
+  <div class="card reveal">
+    <div class="flow">
+      <span class="step">CLI: URL or repo path</span><span class="arrow">→</span>
+      <span class="step">Normalize + parallel checks (20s timeouts)</span><span class="arrow">→</span>
+      <span class="step">Score: 100 − failed weights</span><span class="arrow">→</span>
+      <span class="step">Console summary + HTML report (+ JSON)</span>
+    </div>
+    <p>Repo mode swaps in a tree walk (5,000-file / 1 MiB caps, allowlist
+    support) and the check modules above. An <code>error</code> (timeout,
+    DNS down, OSV unreachable) never counts as a vulnerability.</p>
+  </div>
+
+  <h2 class="reveal">Run it</h2>
+  <pre class="reveal"><code>git clone https://github.com/ApoorvRusia/sitevitals.git
+cd sitevitals
+npm install &amp;&amp; npm run build
+node dist/cli.js https://example.com        # URL report card
+node dist/cli.js repo /path/to/your/repo    # repo score</code></pre>
+
+  <h2 class="reveal">For agents</h2>
+  <div class="card reveal">
+    <p>SiteVitals is agent-first. Give this repo's URL to an AI agent —
+    Claude, Copilot, Muse, Grok — and it can take it from there: install,
+    run audits on your websites and projects, and report back with scores
+    and fixes.</p>
+    <ul>
+      <li><code>AGENTS.md</code> at the repo root — cold-start instructions written for agents</li>
+      <li><code>sitevitals.tool.json</code> — machine-readable tool manifest (commands, flags, schemas, exit codes)</li>
+      <li><code>schemas/</code> — JSON Schemas for both modes' <code>--json</code> output</li>
+      <li><strong>Exit codes:</strong> 0 = score ≥ <code>--min-score</code> (default 70), 1 = below threshold, 2 = error — agents and CI can gate on these directly</li>
+      <li><strong>Safety:</strong> report-only, passive checks, secrets never printed or verified live, only package names + versions leave the machine (OSV lookup)</li>
+    </ul>
+  </div>
+
+  <h2 class="reveal">Limits</h2>
+  <p class="reveal">SiteVitals is a hygiene check, not a penetration test. It will not find
+  application vulnerabilities. It makes sure the front door is locked, the
+  windows are latched, and the alarm is on.</p>
+
+  <h2 class="reveal">Roadmap</h2>
+  <div class="card reveal">
+    <p><strong>Shipped</strong></p>
+    <ul>
+      <li>✅ URL checker — HTTPS, headers, cookies, TLS, DNS, scored /100</li>
+      <li>✅ Repo scanning — secrets, deps (OSV: npm/PyPI/Go), injection patterns, Dockerfile, license audit, CI config</li>
+      <li>✅ SBOM export (CycloneDX 1.5)</li>
+      <li>✅ <code>--json</code> output for agents and CI</li>
+    </ul>
+    <p><strong>Next</strong></p>
+    <ul>
+      <li>⬜ Git-history scanning — secrets in past commits, not just the working tree</li>
+      <li>⬜ GitHub-URL input — scan a remote repo without cloning it yourself</li>
+    </ul>
+    <p><strong>Later</strong></p>
+    <ul>
+      <li>⬜ Web UI</li>
+      <li>⬜ AST/taint-based injection analysis (replacing regex patterns)</li>
+    </ul>
+  </div>
+
+  <h2 class="reveal">About</h2>
+  <div class="card reveal">
+    <p>Built by <a href="https://github.com/ApoorvRusia">Apoorv Rusia</a>, a
+    data engineering leader. Most websites don't get hacked through exotic
+    vulnerabilities — they fail on the basics: a missing HSTS header, a
+    loose CSP, an expired certificate, no DMARC record, a secret committed
+    to a repo. A full audit is slow and expensive overkill for a routine
+    check. SiteVitals covers the gap: a five-minute check you can run any
+    time, on any site or repo — before a launch, after a migration, or on
+    a schedule.</p>
+  </div>
+
+  <footer>
+    <p><a href="https://github.com/ApoorvRusia/sitevitals">github.com/ApoorvRusia/sitevitals</a> · MIT License</p>
+  </footer>
+</main>
+<script>
+  // Theme toggle (dark default; remembers nothing — static page, no storage needed)
+  var btn = document.getElementById('themeToggle');
+  btn.addEventListener('click', function () {
+    var html = document.documentElement;
+    var dark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', dark ? 'light' : 'dark');
+    btn.textContent = dark ? '🌙 Dark' : '☀ Light';
+  });
+  // Animated score dial: counts to 81, ring fills to match
+  (function () {
+    var target = 81, num = document.getElementById('dialNum'), ring = document.getElementById('ringFg');
+    var circ = 465, start = null;
+    function step(ts) {
+      if (!start) start = ts;
+      var p = Math.min((ts - start) / 1600, 1);
+      var v = Math.round(target * p);
+      num.textContent = v;
+      ring.style.strokeDashoffset = circ - (circ * target / 100) * p;
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  })();
+  // Scroll reveal
+  (function () {
+    var els = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('in'); }); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+    }, { threshold: 0.12 });
+    els.forEach(function (e) { io.observe(e); });
+  })();
+</script>
+</body>
+</html>
