@@ -417,7 +417,16 @@
         .reveal { transform: none; transition: none; }
         * { transition-duration: 0.01ms !important; }
       }
-    </style>
+    
+      /* hero layout v2: shield beside headline, copy full width below */
+      .hero-top { display: grid; grid-template-columns: 1fr 300px; gap: 28px; align-items: center; margin-bottom: 22px; }
+      .hero-top .stage { min-height: 300px; }
+      .hero .lede { max-width: none; }
+      @media (max-width: 900px) {
+        .hero-top { grid-template-columns: 1fr 150px; gap: 14px; }
+        .hero-top .stage { min-height: 170px; }
+      }
+</style>
   </head>
   <body>
     <div class="gridlines" aria-hidden="true"></div>
@@ -446,28 +455,12 @@
       <!-- ================= HERO ================= -->
       <div class="hero">
         <div class="wrap">
-          <div class="hero-grid">
-            <div class="hero-copy">
+          <div class="hero-top">
+            <div class="hero-head">
               <span class="pill"><span class="pulse" aria-hidden="true"></span> Agent-first security auditor</span>
               <h1>Your site's<br />report card,<br /><span class="grad">in five minutes.</span></h1>
-              <p class="lede">SiteVitals runs <strong>18 passive checks</strong> on any website and a full hygiene scan on any repo — leaked secrets, vulnerable dependencies, injection patterns — then scores it out of 100 with a plain-English fix for every failure. <strong>One command. Zero runtime dependencies.</strong></p>
-              <div class="cta-row">
-                <a class="btn btn-primary" href="https://github.com/ApoorvRusia/sitevitals" target="_blank" rel="noopener">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 6-6 6 6 6M16 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  View on GitHub
-                </a>
-                <a class="btn btn-ghost" href="#scan">Try the scan demo</a>
-              </div>
-              <div class="hero-stats">
-                <div class="hstat"><b>18</b><span>URL checks</span></div>
-                <div class="hstat"><b>7</b><span>Repo scan areas</span></div>
-                <div class="hstat"><b><em>0</em></b><span>Runtime deps</span></div>
-                <div class="hstat"><b>100<em>pt</em></b><span>Score scale</span></div>
-              </div>
             </div>
-
-            <div>
-              <div class="stage" id="stage">
+            <div class="stage" id="stage">
                 <!-- WebGL view -->
                 <div class="stage-view active" id="view-gl" role="img" aria-label="Interactive 3D shield rendered in WebGL, slowly rotating with orbiting rings and a scanning sweep">
                   <canvas id="glcanvas"></canvas>
@@ -477,12 +470,40 @@
                 
                 
               </div>
+          </div>
+          <p class="lede">SiteVitals runs <strong>18 passive checks</strong> on any website and a full hygiene scan on any repo — leaked secrets, vulnerable dependencies, injection patterns — then scores it out of 100 with a plain-English fix for every failure. <strong>One command. Zero runtime dependencies.</strong></p>
+          <div class="cta-row">
+                <a class="btn btn-primary" href="https://github.com/ApoorvRusia/sitevitals" target="_blank" rel="noopener">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 6-6 6 6 6M16 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  View on GitHub
+                </a>
+                <a class="btn btn-ghost" href="#scan">Try the scan demo</a>
+              </div>
+          <div class="hero-stats">
+                <div class="hstat"><b>18</b><span>URL checks</span></div>
+                <div class="hstat"><b>7</b><span>Repo scan areas</span></div>
+                <div class="hstat"><b><em>0</em></b><span>Runtime deps</span></div>
+                <div class="hstat"><b>100<em>pt</em></b><span>Score scale</span></div>
+              </div>
+        </div>
+      </div>
 
-              
+      <!-- ================= ENGINE ================= -->
+      <section id="engine">
+        <div class="wrap">
+          <div class="engine reveal">
+            <span class="sec-tag">The engine</span>
+            <h2>Built in-house.<br />Zero dependencies.</h2>
+            <p><strong>The checking engine is written from scratch in TypeScript on Node.js</strong> — no shell-outs to gitleaks, semgrep, or osv-scanner. Secret patterns are vendored as data (MIT Gitleaks defaults, attributed), and the only network call a repo scan makes is the OSV lookup. <strong>There is no supply chain to audit in the auditor.</strong></p>
+            <div class="counters">
+              <div class="counter"><b><span data-count="0">0</span></b><span>Runtime dependencies — Node built-ins only</span></div>
+              <div class="counter"><b><span data-count="18">18</span></b><span>Passive URL checks per scan</span></div>
+              <div class="counter"><b><span data-count="5000">5,000</span></b><span>File cap on the repo tree walk</span></div>
+              <div class="counter"><b><span data-count="20">20</span><em>s</em></b><span>Per-check timeout — an error never counts as a vulnerability</span></div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <!-- ================= SCAN SIMULATOR ================= -->
       <section id="scan">
@@ -589,22 +610,7 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
         </div>
       </section>
 
-      <!-- ================= ENGINE ================= -->
-      <section id="engine">
-        <div class="wrap">
-          <div class="engine reveal">
-            <span class="sec-tag">The engine</span>
-            <h2>Built in-house.<br />Zero dependencies.</h2>
-            <p><strong>The checking engine is written from scratch in TypeScript on Node.js</strong> — no shell-outs to gitleaks, semgrep, or osv-scanner. Secret patterns are vendored as data (MIT Gitleaks defaults, attributed), and the only network call a repo scan makes is the OSV lookup. <strong>There is no supply chain to audit in the auditor.</strong></p>
-            <div class="counters">
-              <div class="counter"><b><span data-count="0">0</span></b><span>Runtime dependencies — Node built-ins only</span></div>
-              <div class="counter"><b><span data-count="18">18</span></b><span>Passive URL checks per scan</span></div>
-              <div class="counter"><b><span data-count="5000">5,000</span></b><span>File cap on the repo tree walk</span></div>
-              <div class="counter"><b><span data-count="20">20</span><em>s</em></b><span>Per-check timeout — an error never counts as a vulnerability</span></div>
-            </div>
-          </div>
-        </div>
-      </section>
+      
 
       
 
