@@ -255,6 +255,7 @@
       }
       html[data-theme="light"] .sim-btn { background: #fff; }
       .sim-btn:hover { border-color: var(--accent); }
+      .sim-btn.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 18px rgba(34,211,238,.18); }
       .sim-btn .sc { font-family: "JetBrains Mono", monospace; font-size: 0.8rem; color: var(--accent); }
       .sim-note { margin-top: 14px; font-size: 0.76rem; color: var(--faint); }
       .sim-right { background: var(--term-bg); display: flex; flex-direction: column; min-height: 430px; }
@@ -1010,9 +1011,15 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
             delay += reduced ? 0 : 260;
           });
         }
-        document.getElementById("btnHardened").addEventListener("click", function () { runScan("hardened"); });
-        document.getElementById("btnBare").addEventListener("click", function () { runScan("bare"); });
-        document.getElementById("btnRepo").addEventListener("click", runRepoScan);
+        function markSel(id) {
+          ["btnHardened", "btnBare", "btnRepo"].forEach(function (x) {
+            var el = document.getElementById(x);
+            if (el) el.classList.toggle("sel", x === id);
+          });
+        }
+        document.getElementById("btnHardened").addEventListener("click", function () { markSel("btnHardened"); runScan("hardened"); });
+        document.getElementById("btnBare").addEventListener("click", function () { markSel("btnBare"); runScan("bare"); });
+        document.getElementById("btnRepo").addEventListener("click", function () { markSel("btnRepo"); runRepoScan(); });
 
         /* Auto-start: run one random sample when the simulator scrolls into view,
            so the log panel is never a blank black box. Runs once; buttons still work. */
