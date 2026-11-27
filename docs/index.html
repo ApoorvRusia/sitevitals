@@ -475,7 +475,7 @@
                 </div>
                 
                 
-                <div class="stage-caption"><span class="live-dot" aria-hidden="true"></span><span id="stageCaption">WebGL hero · three.js · drag to orbit, move to parallax</span></div>
+                
               </div>
 
               
@@ -776,7 +776,7 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
             el.setAttribute("aria-hidden", String(!on));
           });
           heroBtns.forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-hero") === name)); });
-          document.getElementById("stageCaption").textContent = captions[name];
+          var _sc = document.getElementById("stageCaption"); if (_sc) _sc.textContent = captions[name];
           if (name === "term") startTerminal();
           if (name === "mesh") animateMeshScore();
           if (window.__svGlActive) window.__svGlActive(name === "gl");
@@ -1198,9 +1198,14 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
         var check = new THREE.Mesh(checkGeo, checkMat);
         check.position.set(0.08, 0.18, 0.42);
         check.scale.setScalar(1.25);
+        /* same check on the back face so it reads correctly while auto-rotating */
+        var checkBack = new THREE.Mesh(checkGeo, checkMat);
+        checkBack.position.set(-0.08, 0.18, -0.42);
+        checkBack.rotation.y = Math.PI;
+        checkBack.scale.setScalar(1.25);
 
         var heroGroup = new THREE.Group();
-        heroGroup.add(shield); heroGroup.add(wire); heroGroup.add(check);
+        heroGroup.add(shield); heroGroup.add(wire); heroGroup.add(check); heroGroup.add(checkBack);
         heroGroup.rotation.set(0.12, -0.35, 0);
         scene.add(heroGroup);
 
