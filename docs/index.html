@@ -143,7 +143,25 @@ node dist/cli.js repo /path/to/your/repo    # repo score</code></pre>
   windows are latched, and the alarm is on.</p>
 
   <h2>Roadmap</h2>
-  <p>Git-history scanning, GitHub-URL input, web UI.</p>
+  <div class="card">
+    <p><strong>Shipped</strong></p>
+    <ul>
+      <li>✅ URL checker — HTTPS, headers, cookies, TLS, DNS, scored /100</li>
+      <li>✅ Repo scanning — secrets, deps (OSV: npm/PyPI/Go), injection patterns, Dockerfile, license audit, CI config</li>
+      <li>✅ SBOM export (CycloneDX 1.5)</li>
+      <li>✅ <code>--json</code> output for agents and CI</li>
+    </ul>
+    <p><strong>Next</strong></p>
+    <ul>
+      <li>⬜ Git-history scanning — secrets in past commits, not just the working tree</li>
+      <li>⬜ GitHub-URL input — scan a remote repo without cloning it yourself</li>
+    </ul>
+    <p><strong>Later</strong></p>
+    <ul>
+      <li>⬜ Web UI</li>
+      <li>⬜ AST/taint-based injection analysis (replacing regex patterns)</li>
+    </ul>
+  </div>
 
   <h2>About</h2>
   <div class="card">

@@ -289,8 +289,20 @@ non-directory path is a hard error) plus secret/PII output checks
 
 ## Roadmap
 
-Shipped: URL checker (v1), repo scanning with 14 checks (secrets, deps via
-OSV for npm/PyPI/Go, injection patterns, Dockerfile, license audit, CI
-config, SBOM export), `--json` output for agents and CI.
+### Shipped
 
-Deferred: git-history scanning, GitHub-URL input, web UI.
+- [x] URL checker (v1) — HTTPS, headers, cookies, TLS, DNS, scored /100
+- [x] Repo scanning — secrets, deps (OSV: npm/PyPI/Go), injection patterns,
+      Dockerfile, license audit, CI config
+- [x] SBOM export (CycloneDX 1.5)
+- [x] `--json` output for agents and CI
+
+### Next
+
+- [ ] Git-history scanning (secrets in past commits, not just the working tree)
+- [ ] GitHub-URL input (scan a remote repo without cloning it yourself)
+
+### Later
+
+- [ ] Web UI
+- [ ] AST/taint-based injection analysis (replacing regex patterns)
