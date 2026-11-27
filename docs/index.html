@@ -1143,6 +1143,7 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
         var scene = new THREE.Scene();
         var camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
         camera.position.set(0, 0.4, 9.2);
+        camera.lookAt(0, 0, 0); /* center the shield vertically in frame */
 
         var pmrem = new THREE.PMREMGenerator(renderer);
         scene.environment = pmrem.fromScene(new THREE.RoomEnvironment(), 0.04).texture;
