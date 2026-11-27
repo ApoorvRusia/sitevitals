@@ -21,7 +21,9 @@
   .scores { display: flex; gap: 16px; flex-wrap: wrap; }
   .score { flex: 1 1 200px; text-align: center; }
   .score b { font-size: 1.8rem; display: block; }
+  .tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+  @media (max-width: 600px) { table { font-size: .82rem; } th, td { padding: 4px 6px; } main { padding: 28px 14px 48px; } h1 { font-size: 1.7rem; } }
   th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; }
   th { background: #f4f4f4; }
   .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -60,7 +62,7 @@
   <h2>What it checks</h2>
   <div class="card">
     <p><strong>URL mode</strong> — 18 passive checks, score = 100 minus failed weights:</p>
-    <table>
+    <div class="tablewrap"><table>
       <tr><th>Check</th><th>Weight</th><th>Check</th><th>Weight</th></tr>
       <tr><td>HTTP → HTTPS redirect</td><td>10</td><td>Cookie flags (Secure/HttpOnly/SameSite)</td><td>6</td></tr>
       <tr><td>Strict-Transport-Security</td><td>12</td><td>Permissions-Policy</td><td>3</td></tr>
@@ -70,7 +72,7 @@
       <tr><td>X-Content-Type-Options</td><td>5</td><td>TLS 1.2+ floor</td><td>8</td></tr>
       <tr><td>Referrer-Policy</td><td>3</td><td>Cert expires within 30 days</td><td>8</td></tr>
       <tr><td>Version disclosure</td><td>6</td><td>SPF / DMARC / CAA DNS records</td><td>7 / 7 / 5</td></tr>
-    </table>
+    </table></div>
     <p><strong>Repo mode</strong> (<code>sitevitals repo &lt;path&gt;</code>) — its own 100-point score:</p>
     <ul>
       <li><strong>Secrets</strong> — vendored MIT Gitleaks rule patterns, redacted previews only, never verified live</li>
