@@ -1,0 +1,37 @@
+{
+  "name": "sitevitals",
+  "version": "1.0.0",
+  "description": "Passive security hygiene audit for websites and local code repos. Scores out of 100 with a plain-English fix per failure. Report-only: never modifies the target, never verifies found secrets live. Only package names + versions leave the machine (OSV lookup).",
+  "homepage": "https://apoorvrusia.github.io/sitevitals/",
+  "repository": "https://github.com/ApoorvRusia/sitevitals",
+  "license": "MIT",
+  "install": ["git clone https://github.com/ApoorvRusia/sitevitals.git", "cd sitevitals", "npm install", "npm run build"],
+  "commands": [
+    {
+      "name": "url-audit",
+      "invoke": "node dist/cli.js <url> [--json] [--min-score <n>]",
+      "description": "Audit a website: HTTPS redirect, security headers, cookie flags, TLS, DNS (SPF/DMARC/CAA), security.txt.",
+      "outputSchema": "schemas/url-report.schema.json",
+      "sideEffects": "Writes a self-contained HTML report to reports/. All checks are passive reads."
+    },
+    {
+      "name": "repo-scan",
+      "invoke": "node dist/cli.js repo <path> [--json] [--min-score <n>] [--allowlist <file>] [--osv-fixture <file>]",
+      "description": "Audit a local working tree: leaked secrets (redacted), vulnerable deps via OSV (npm/PyPI/Go), JS/TS injection patterns, Dockerfile, license audit, CI config.",
+      "outputSchema": "schemas/repo-report.schema.json",
+      "sideEffects": "Writes a self-contained HTML report to reports/. Never modifies the scanned repo. Never verifies secrets live."
+    },
+    {
+      "name": "sbom",
+      "invoke": "node dist/cli.js repo <path> --sbom [--sbom-out <file>]",
+      "description": "Emit a CycloneDX 1.5 inventory of the repo's npm/PyPI/Go manifests. No scoring.",
+      "sideEffects": "Prints to stdout, or writes the file given by --sbom-out."
+    }
+  ],
+  "exitCodes": {
+    "0": "Scan completed and score >= --min-score (default 70). SBOM mode: success.",
+    "1": "Scan completed and score < --min-score.",
+    "2": "Usage or runtime error; no score produced."
+  },
+  "agentInstructions": "AGENTS.md"
+}

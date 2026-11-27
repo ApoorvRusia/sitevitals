@@ -28,6 +28,24 @@ node dist/cli.js <url>   # or: npm run check -- <url>
 
 Output: console summary + `reports/<host>-<timestamp>.html`.
 
+## For agents
+
+SiteVitals is agent-first: hand this repo's URL to an AI agent (Claude,
+Copilot, Muse, Grok, …) and it can install and run SiteVitals on your
+website or project from there.
+
+- [`AGENTS.md`](AGENTS.md) — cold-start instructions written for agents:
+  install, run, exit codes, how to report back, safety rules.
+- [`sitevitals.tool.json`](sitevitals.tool.json) — machine-readable tool
+  manifest (commands, flags, output schemas, exit codes).
+- [`schemas/`](schemas/) — JSON Schemas for the `--json` output of both
+  modes.
+- **Exit codes:** `0` = score ≥ `--min-score` (default 70), `1` = below
+  threshold, `2` = error. Agents and CI can gate on these directly.
+- **Safety:** report-only, passive checks, secrets never printed or
+  verified live, and only package names + versions leave the machine
+  (OSV lookup).
+
 ## JSON output (v2)
 
 Add `--json` and stdout is pure JSON — same score, grade, counts, and per-check results, plus the HTML report path — so other tools can consume a run without scraping the console summary:

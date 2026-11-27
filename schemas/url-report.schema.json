@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SiteVitals URL report (--json output)",
+  "type": "object",
+  "required": ["tool", "version", "target", "hostname", "scannedAt", "score", "grade", "passed", "failed", "errors", "results", "report"],
+  "properties": {
+    "tool": { "const": "sitevitals" },
+    "version": { "type": "string" },
+    "target": { "type": "string", "description": "Normalized URL that was scanned" },
+    "hostname": { "type": "string" },
+    "scannedAt": { "type": "string", "format": "date-time" },
+    "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "grade": { "type": "string", "enum": ["A", "B", "C", "D", "F"] },
+    "passed": { "type": "integer", "minimum": 0 },
+    "failed": { "type": "integer", "minimum": 0 },
+    "errors": { "type": "integer", "minimum": 0 },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "status", "severity", "detail"],
+        "properties": {
+          "id": { "type": "string", "description": "Stable check id, e.g. 'hsts', 'csp', 'tls-cert'" },
+          "name": { "type": "string" },
+          "status": { "type": "string", "enum": ["pass", "fail", "error"], "description": "'error' means the check could not run; it never counts as a vulnerability" },
+          "severity": { "type": "string" },
+          "detail": { "type": "string", "description": "One-line plain-English explanation of what was found" },
+          "fix": { "type": "string", "description": "Remediation snippet, present when status is 'fail'" }
+        }
+      }
+    },
+    "report": { "type": "string", "description": "Path to the self-contained HTML report file" }
+  }
+}

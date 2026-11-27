@@ -20,7 +20,22 @@ import { collectFiles, resolveRepoRoot } from './repo/scanner.js';
 const VERSION = '1.0.0';
 
 function usage(): string {
-  return 'Usage: node dist/cli.js <url> [--json] | node dist/cli.js repo <path> [--json] [--osv-fixture <file>] [--allowlist <file>] [--sbom [--sbom-out <file>]]';
+  return 'Usage: node dist/cli.js <url> [--json] [--min-score <n>] | node dist/cli.js repo <path> [--json] [--min-score <n>] [--osv-fixture <file>] [--allowlist <file>] [--sbom [--sbom-out <file>]]';
+}
+
+// Exit-code contract (agents + CI rely on this):
+//   0 — scan completed and score >= --min-score (default 70)
+//   1 — scan completed and score <  --min-score
+//   2 — usage or runtime error (no score produced)
+// --sbom mode exits 0 on success (it inventories; it does not score).
+function minScoreFrom(args: string[]): number {
+  const raw = flagValue(args, '--min-score');
+  const n = raw === undefined ? NaN : Number(raw);
+  return Number.isFinite(n) && n >= 0 && n <= 100 ? n : 70;
+}
+
+function applyScoreExitCode(score: number, minScore: number): void {
+  process.exitCode = score >= minScore ? 0 : 1;
 }
 
 function flagValue(args: string[], flag: string): string | undefined {
@@ -32,7 +47,7 @@ async function runUrlCli(args: string[], jsonMode: boolean): Promise<void> {
   const target = args.find((a) => !a.startsWith('--'));
   if (!target) {
     console.error(usage());
-    process.exit(1);
+    process.exit(2);
   }
 
   if (!jsonMode) console.log(`Scanning ${target} … (passive checks only)\n`);
@@ -68,6 +83,7 @@ async function runUrlCli(args: string[], jsonMode: boolean): Promise<void> {
         2,
       ),
     );
+    applyScoreExitCode(score.score, minScoreFrom(args));
     return;
   }
 
@@ -78,13 +94,14 @@ async function runUrlCli(args: string[], jsonMode: boolean): Promise<void> {
   }
   console.log(`\nScore: ${score.score}/100 (Grade ${score.grade}) — ${score.passed} passed, ${score.failed} failed, ${score.errors} errors`);
   console.log(`Report: ${filePath}`);
+  applyScoreExitCode(score.score, minScoreFrom(args));
 }
 
 async function runRepoCli(args: string[], jsonMode: boolean): Promise<void> {
   const target = args.find((a) => !a.startsWith('--'));
   if (!target) {
     console.error(usage());
-    process.exit(1);
+    process.exit(2);
   }
   const osvFixture = flagValue(args, '--osv-fixture');
   const allowlistPath = flagValue(args, '--allowlist');
@@ -92,11 +109,11 @@ async function runRepoCli(args: string[], jsonMode: boolean): Promise<void> {
   const sbomOut = flagValue(args, '--sbom-out');
   if (osvFixture && !fs.existsSync(osvFixture)) {
     console.error(`OSV fixture file does not exist: ${osvFixture}`);
-    process.exit(1);
+    process.exit(2);
   }
   if (allowlistPath && !fs.existsSync(allowlistPath)) {
     console.error(`Allowlist file does not exist: ${allowlistPath}`);
-    process.exit(1);
+    process.exit(2);
   }
 
   // --sbom mode inventories the repo instead of scoring it: no checks
@@ -109,7 +126,7 @@ async function runRepoCli(args: string[], jsonMode: boolean): Promise<void> {
       files = collectFiles(root).files;
     } catch (err) {
       console.error(`SBOM failed: ${(err as Error).message}`);
-      process.exit(1);
+      process.exit(2);
     }
     const sbom = buildSbom(root, files, VERSION);
     const text = JSON.stringify(sbom, null, 2);
@@ -128,7 +145,7 @@ async function runRepoCli(args: string[], jsonMode: boolean): Promise<void> {
     scan = await runRepoScan(target, { osvFixture, allowlistPath });
   } catch (err) {
     console.error(`Repo scan failed: ${(err as Error).message}`);
-    process.exit(1);
+    process.exit(2);
   }
   const score = scoreRepoResults(scan.results);
 
@@ -163,6 +180,7 @@ async function runRepoCli(args: string[], jsonMode: boolean): Promise<void> {
         2,
       ),
     );
+    applyScoreExitCode(score.score, minScoreFrom(args));
     return;
   }
 
@@ -174,6 +192,7 @@ async function runRepoCli(args: string[], jsonMode: boolean): Promise<void> {
   }
   console.log(`\nScore: ${score.score}/100 (Grade ${score.grade}) — ${score.passed} passed, ${score.failed} failed, ${score.errors} errors — ${scan.filesScanned} files scanned${scan.filesSkipped ? `, ${scan.filesSkipped} skipped` : ''}${scan.hitFileCap ? ' — FILE CAP HIT' : ''}`);
   console.log(`Report: ${filePath}`);
+  applyScoreExitCode(score.score, minScoreFrom(args));
 }
 
 async function main() {
@@ -181,7 +200,7 @@ async function main() {
   const jsonMode = args.includes('--json');
   if (args.length === 0) {
     console.error(usage());
-    process.exit(1);
+    process.exit(2);
   }
   if (args[0] === 'repo') {
     await runRepoCli(args.slice(1), jsonMode);
@@ -192,5 +211,5 @@ async function main() {
 
 main().catch((err) => {
   console.error('Scan failed:', (err as Error).message);
-  process.exit(1);
+  process.exit(2);
 });

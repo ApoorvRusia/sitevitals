@@ -137,6 +137,21 @@ npm install &amp;&amp; npm run build
 node dist/cli.js https://example.com        # URL report card
 node dist/cli.js repo /path/to/your/repo    # repo score</code></pre>
 
+  <h2>For agents</h2>
+  <div class="card">
+    <p>SiteVitals is agent-first. Give this repo's URL to an AI agent —
+    Claude, Copilot, Muse, Grok — and it can take it from there: install,
+    run audits on your websites and projects, and report back with scores
+    and fixes.</p>
+    <ul>
+      <li><code>AGENTS.md</code> at the repo root — cold-start instructions written for agents</li>
+      <li><code>sitevitals.tool.json</code> — machine-readable tool manifest (commands, flags, schemas, exit codes)</li>
+      <li><code>schemas/</code> — JSON Schemas for both modes' <code>--json</code> output</li>
+      <li><strong>Exit codes:</strong> 0 = score ≥ <code>--min-score</code> (default 70), 1 = below threshold, 2 = error — agents and CI can gate on these directly</li>
+      <li><strong>Safety:</strong> report-only, passive checks, secrets never printed or verified live, only package names + versions leave the machine (OSV lookup)</li>
+    </ul>
+  </div>
+
   <h2>Limits</h2>
   <p>SiteVitals is a hygiene check, not a penetration test. It will not find
   application vulnerabilities. It makes sure the front door is locked, the

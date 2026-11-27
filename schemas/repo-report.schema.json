@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SiteVitals repo report (--json output, repo mode)",
+  "type": "object",
+  "required": ["tool", "version", "mode", "target", "scannedAt", "filesScanned", "filesSkipped", "hitFileCap", "score", "grade", "passed", "failed", "errors", "results", "report"],
+  "properties": {
+    "tool": { "const": "sitevitals" },
+    "version": { "type": "string" },
+    "mode": { "const": "repo" },
+    "target": { "type": "string", "description": "Absolute path of the scanned working tree" },
+    "scannedAt": { "type": "string", "format": "date-time" },
+    "filesScanned": { "type": "integer", "minimum": 0 },
+    "filesSkipped": { "type": "integer", "minimum": 0 },
+    "hitFileCap": { "type": "boolean", "description": "True if the 5,000-file cap stopped the walk early" },
+    "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "grade": { "type": "string", "enum": ["A", "B", "C", "D", "F"] },
+    "passed": { "type": "integer", "minimum": 0 },
+    "failed": { "type": "integer", "minimum": 0 },
+    "errors": { "type": "integer", "minimum": 0 },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "status", "severity", "detail"],
+        "properties": {
+          "id": { "type": "string", "description": "Stable check id, e.g. 'secrets', 'deps-vulnerable', 'dockerfile-root-user'" },
+          "name": { "type": "string" },
+          "status": { "type": "string", "enum": ["pass", "fail", "error"] },
+          "severity": { "type": "string" },
+          "detail": { "type": "string", "description": "Findings carry rule id + redacted preview only; secret values are never printed" },
+          "fix": { "type": "string" },
+          "file": { "type": "string", "description": "Repo-relative file path for the finding, when applicable" },
+          "line": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "report": { "type": "string", "description": "Path to the self-contained HTML report file" }
+  }
+}
