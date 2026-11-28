@@ -433,8 +433,8 @@
         .engine-viz { height: 170px; }
       }
 
-      /* simulator: fixed-height log with its own scrollbar; sign-off pins to bottom on short scans */
-      .sim-log { display: flex; flex-direction: column; max-height: 430px; overflow-y: auto; }
+      /* simulator: log fills the fixed frame and scrolls inside it; sign-off pins to bottom on short scans */
+      .sim-log { display: flex; flex-direction: column; max-height: none; overflow-y: auto; }
       .sim-log .sim-spacer { flex: 1; min-height: 12px; }
 </style>
   </head>
