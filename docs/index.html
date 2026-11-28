@@ -433,8 +433,9 @@
         .engine-viz { height: 170px; }
       }
 
-      /* simulator: terminal-style — log lines anchor to the bottom, no dead space below */
-      .sim-log { display: flex; flex-direction: column; justify-content: flex-end; max-height: none; }
+      /* simulator: logs populate top-down; final sign-off pins to the bottom (no dead space) */
+      .sim-log { display: flex; flex-direction: column; max-height: none; }
+      .sim-log .sim-spacer { flex: 1; min-height: 12px; }
 </style>
   </head>
   <body>
@@ -987,6 +988,7 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
                   logLine("—", "dim");
                   logLine('<span class="hd">SCORE ' + scan.score + "/100 · GRADE " + g + "</span>  ·  " + esc(scan.counts), "");
                   logLine('<span class="dim">report.html + --json saved · score = 100 − failed weights</span>', "");
+                  logLine("", "sim-spacer");
                   logLine('<span class="dim">Run it for real:</span>  <span class="hd">node dist/cli.js https://your-site.com</span>', "");
                   logLine('<span class="caret"></span>', "");
                   gradeChip.textContent = "GRADE " + g + " · " + scan.score + "/100";
@@ -1026,6 +1028,7 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
                 simTimers.push(setTimeout(function () {
                   logLine("—", "dim");
                   logLine('<span class="hd">REPO SCORE 100/100 · GRADE A</span>  ·  report-only, repo untouched', "");
+                  logLine("", "sim-spacer");
                   logLine('<span class="dim">Run it for real:</span>  <span class="hd">node dist/cli.js ./your-repo</span>', "");
                   logLine('<span class="caret"></span>', "");
                   gradeChip.textContent = "GRADE A · 100/100";
