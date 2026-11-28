@@ -146,9 +146,8 @@
 
       /* hero stage */
       .stage {
-        position: relative; border-radius: 22px; overflow: hidden; min-height: 480px;
-        background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 9%, var(--bg-2)), var(--bg-2) 55%);
-        border: 1px solid var(--line); box-shadow: var(--shadow);
+        position: relative; overflow: visible; min-height: 480px;
+        background: transparent; border: none; box-shadow: none;
       }
       .stage-view { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity 0.45s ease; }
       .stage-view.active { opacity: 1; pointer-events: auto; }
