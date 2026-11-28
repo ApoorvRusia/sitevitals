@@ -432,6 +432,10 @@
         .engine-grid { grid-template-columns: 1fr 150px; gap: 14px; }
         .engine-viz { height: 170px; }
       }
+
+      /* simulator: no dead space — log panel height follows content */
+      .sim { align-items: start; }
+      .sim-right { min-height: 0; }
 </style>
   </head>
   <body>
@@ -984,6 +988,8 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
                   logLine("—", "dim");
                   logLine('<span class="hd">SCORE ' + scan.score + "/100 · GRADE " + g + "</span>  ·  " + esc(scan.counts), "");
                   logLine('<span class="dim">report.html + --json saved · score = 100 − failed weights</span>', "");
+                  logLine('<span class="dim">Run it for real:</span>  <span class="hd">node dist/cli.js https://your-site.com</span>', "");
+                  logLine('<span class="caret"></span>', "");
                   gradeChip.textContent = "GRADE " + g + " · " + scan.score + "/100";
                   gradeChip.className = "grade-chip " + (scan.score >= 60 ? "g-good" : "g-bad");
                   scanning = false;
@@ -1021,6 +1027,8 @@ node dist/cli.js <span class="a">repo /path/to/repo</span> --json<button class="
                 simTimers.push(setTimeout(function () {
                   logLine("—", "dim");
                   logLine('<span class="hd">REPO SCORE 100/100 · GRADE A</span>  ·  report-only, repo untouched', "");
+                  logLine('<span class="dim">Run it for real:</span>  <span class="hd">node dist/cli.js ./your-repo</span>', "");
+                  logLine('<span class="caret"></span>', "");
                   gradeChip.textContent = "GRADE A · 100/100";
                   gradeChip.className = "grade-chip g-good";
                   scanning = false;
