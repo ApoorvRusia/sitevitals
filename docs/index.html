@@ -433,9 +433,8 @@
         .engine-viz { height: 170px; }
       }
 
-      /* simulator: no dead space — log panel height follows content */
-      .sim { align-items: start; }
-      .sim-right { min-height: 0; }
+      /* simulator: terminal-style — log lines anchor to the bottom, no dead space below */
+      .sim-log { display: flex; flex-direction: column; justify-content: flex-end; max-height: none; }
 </style>
   </head>
   <body>
