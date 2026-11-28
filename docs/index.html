@@ -433,8 +433,9 @@
         .engine-viz { height: 170px; }
       }
 
-      /* simulator: log fills the fixed frame and scrolls inside it; sign-off pins to bottom on short scans */
-      .sim-log { display: flex; flex-direction: column; max-height: none; overflow-y: auto; }
+      /* simulator: log has a FIXED height and scrolls inside it — frame never grows with log lines */
+      .sim-log { display: flex; flex-direction: column; height: 480px; min-height: 0; overflow-y: auto; }
+      @media (max-width: 900px) { .sim-log { height: 400px; } }
       .sim-log .sim-spacer { flex: 1; min-height: 12px; }
 </style>
   </head>
