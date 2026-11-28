@@ -5,6 +5,12 @@
 SiteVitals is a fast, passive hygiene audit for any website. Give it a URL and it checks the security basics — HTTPS redirect, security headers (HSTS, CSP, framing, nosniff, referrer-policy, version leaks, cookie flags), TLS certificate and version, and DNS records (SPF, DMARC) — then scores the site out of 100 with a grade and a plain-English fix for every failure. Reports are self-contained HTML files: emailable, open offline, no dashboard needed.
 
 
+## Watch the demo
+
+[![Watch the SiteVitals demo](docs/demo-poster.jpg)](https://apoorvrusia.github.io/sitevitals/demo.mp4)
+
+A 90-second walkthrough: URL mode against a hardened site (81/B) and a bare site (15/F), repo mode, and the agent-first JSON + exit-code contract.
+
 ## Built in-house, zero dependencies
 
 The checking engine is built in-house in TypeScript on Node.js, with zero
